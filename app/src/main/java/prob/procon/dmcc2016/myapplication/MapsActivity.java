@@ -1,5 +1,6 @@
 package prob.procon.dmcc2016.myapplication;
 
+import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
@@ -10,6 +11,7 @@ import com.google.android.gms.maps.model.TileProvider;
 import com.google.android.gms.maps.model.UrlTileProvider;
 
 import android.*;
+import android.Manifest;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
@@ -27,7 +29,7 @@ import java.util.Locale;
 /**
  * This demonstrates tile overlay coordinates.
  */
-public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback {
+public abstract class MapsActivity extends AppCompatActivity implements OnMapReadyCallback ,LocationListener {
 
     private static final String MAP_URL_FORMAT =
             "http://cyberjapandata.gsi.go.jp/xyz/relief/%d/%d/%d.png";
