@@ -4,7 +4,10 @@ import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.TileOverlay;
 import com.google.android.gms.maps.model.TileOverlayOptions;
 import com.google.android.gms.maps.model.TileProvider;
@@ -21,13 +24,17 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.text.SpannableString;
 import android.text.style.ForegroundColorSpan;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 
 /**
@@ -48,40 +55,30 @@ public class MapsActivity extends AppCompatActivity
         // "title" and "snippet".
         private final View mWindow;
 
-        private final View mContents;
 
         CustomInfoWindowAdapter() {
             mWindow = getLayoutInflater().inflate(R.layout.custom_info_window, null);
-            mContents = getLayoutInflater().inflate(R.layout.custom_info_contents, null);
         }
 
         @Override
         public View getInfoWindow(Marker marker) {
-            if (mOptions.getCheckedRadioButtonId() != R.id.custom_info_window) {
-                // This means that getInfoContents will be called.
-                return null;
-            }
+
             render(marker, mWindow);
             return mWindow;
         }
 
         @Override
         public View getInfoContents(Marker marker) {
-            if (mOptions.getCheckedRadioButtonId() != R.id.custom_info_contents) {
-                // This means that the default info contents will be used.
-                return null;
-            }
-            render(marker, mContents);
-            return mContents;
+            return null;
         }
+
 
         private void render(Marker marker, View view) {
             int badge = 0;
 
-            ((ImageView) view.findViewById(R.id.badge)).setImageResource(badge);
 
             String title = marker.getTitle();
-            TextView titleUi = ((TextView) view.findViewById(R.id.title));
+            TextView titleUi = ((TextView) view.findViewById(R.id.Info_type));
             if (title != null) {
                 // Spannable string allows us to edit the formatting of the text.
                 SpannableString titleText = new SpannableString(title);
@@ -92,7 +89,7 @@ public class MapsActivity extends AppCompatActivity
             }
 
             String snippet = marker.getSnippet();
-            TextView snippetUi = ((TextView) view.findViewById(R.id.snippet));
+            TextView snippetUi = ((TextView) view.findViewById(R.id.Comment_str));
             if (snippet != null && snippet.length() > 12) {
                 SpannableString snippetText = new SpannableString(snippet);
                 snippetText.setSpan(new ForegroundColorSpan(Color.MAGENTA), 0, 10, 0);
@@ -109,16 +106,28 @@ public class MapsActivity extends AppCompatActivity
 
     private TileOverlay jMaps;
 
+    private Marker mLastSelectedMarker;
+
+    private final List<Marker> mMarkerRainbow = new ArrayList<Marker>();
+
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
 
     private boolean mPermissionDenied = false;
 
     private GoogleMap mMap;
 
+    private int location_user_x;
+    private int location_user_y;
+
+    private TextView mTagText;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
+
+        mTagText = (TextView)findViewById(R.id.User_id);
+
 
         SupportMapFragment mapFragment =
                 (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
@@ -140,6 +149,19 @@ public class MapsActivity extends AppCompatActivity
     public void onMapReady(GoogleMap map) {
         mMap = map;
         map.setMapType(GoogleMap.MAP_TYPE_NONE);
+
+        // Add lots of markers to the map.
+        addMarkersToMap();
+
+        // Setting an info window adapter allows us to change the both the contents and look of the
+        // info window.
+        mMap.setInfoWindowAdapter(new CustomInfoWindowAdapter());
+
+        // Set listeners for marker events.  See the bottom of this class for their behavior.
+        mMap.setOnMarkerClickListener(this);
+        mMap.setOnInfoWindowClickListener(this);
+        mMap.setOnInfoWindowCloseListener(this);
+
         TileProvider tileProvider = new UrlTileProvider(256,256) {
             @Override
             public synchronized URL getTileUrl(int x, int y, int zoom) {
@@ -151,6 +173,7 @@ public class MapsActivity extends AppCompatActivity
                 } catch (MalformedURLException e) {
                     throw new AssertionError(e);
                 }
+                Log.d("getTile","座標はx:"+x+", y:"+y+", zoom" + zoom);
                 return url;
             }
         };
@@ -163,6 +186,25 @@ public class MapsActivity extends AppCompatActivity
         mMap.setOnMyLocationButtonClickListener(this);
         enableMyLocation();
     }
+
+    private void addMarkersToMap() {
+
+
+        int numMarkersInRainbow = 12;
+        for (int i = 0; i < numMarkersInRainbow; i++) {
+            Marker marker = mMap.addMarker(new MarkerOptions()
+                    .position(new LatLng(
+                            30 + 10 * Math.sin(i * Math.PI / (numMarkersInRainbow - 1)),
+                            135 - 10 * Math.cos(i * Math.PI / (numMarkersInRainbow - 1))))
+                    .title("Marker " + i)
+                    .icon(BitmapDescriptorFactory.defaultMarker(i * 360 / numMarkersInRainbow))
+                    .flat(true)
+                    .rotation(0));
+            mMarkerRainbow.add(marker);
+        }
+    }
+
+
 
     @Override
     public boolean onMyLocationButtonClick() {
@@ -215,7 +257,24 @@ public class MapsActivity extends AppCompatActivity
 
     @Override
     public boolean onMarkerClick(Marker marker) {
-         return false;
+        // Markers have a z-index that is settable and gettable.
+        float zIndex = marker.getZIndex() + 1.0f;
+        marker.setZIndex(zIndex);
+        Toast.makeText(this, marker.getTitle() + " z-index set to " + zIndex,
+                Toast.LENGTH_SHORT).show();
+
+        // Markers can store and retrieve a data object via the getTag/setTag methods.
+        // Here we use it to retrieve the number of clicks stored for this marker.
+        // Check if a click count was set.
+        //mTagText.setText(marker.getTitle() + " has been clicked ") ;
+
+
+        mLastSelectedMarker = marker;
+        // We return false to indicate that we have not consumed the event and that we wish
+        // for the default behavior to occur (which is for the camera to move such that the
+        // marker is centered and for the marker's info window to open, if it has one).
+        return false;
+
     }
 
     @Override
