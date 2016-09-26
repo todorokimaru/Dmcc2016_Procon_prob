@@ -1,6 +1,8 @@
 package prob.procon.dmcc2016.myapplication;
 
 import com.google.android.gms.location.LocationListener;
+import com.google.android.gms.maps.CameraUpdate;
+import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
@@ -14,6 +16,7 @@ import com.google.android.gms.maps.model.TileProvider;
 import com.google.android.gms.maps.model.UrlTileProvider;
 
 import android.Manifest;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Location;
@@ -116,8 +119,10 @@ public class MapsActivity extends AppCompatActivity
 
     private GoogleMap mMap;
 
-    private int location_user_x;
-    private int location_user_y;
+    private double location_user_x;
+    private double location_user_y;
+    private int befor_zoom;
+    private String mount_name;
 
     private TextView mTagText;
 
@@ -126,12 +131,20 @@ public class MapsActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
 
+        Intent intent = getIntent();
+        mount_name = intent.getStringExtra("Mount_name");
+        location_user_x = intent.getDoubleExtra("Mount_x",0.0);
+        location_user_y = intent.getDoubleExtra("Mount_y",0.0);
+        befor_zoom = intent.getIntExtra("zoom", 0);
+        Log.d("Initialize","名称は:"+mount_name+"座標はx:"+location_user_x+", y:"+location_user_y+", zoom" + befor_zoom);
+
         mTagText = (TextView)findViewById(R.id.User_id);
 
 
         SupportMapFragment mapFragment =
                 (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+
     }
 
     private void enableMyLocation() {
@@ -181,10 +194,12 @@ public class MapsActivity extends AppCompatActivity
         jMaps = map.addTileOverlay(new TileOverlayOptions().tileProvider(tileProvider));
         map.addTileOverlay(new TileOverlayOptions().tileProvider(tileProvider));
 
-        mMap.getMaxZoomLevel();
-
         mMap.setOnMyLocationButtonClickListener(this);
         enableMyLocation();
+        moveToStartLocotion();
+
+        mMap.setMaxZoomPreference(15);
+        mMap.setMinZoomPreference(10);
     }
 
     private void addMarkersToMap() {
@@ -285,5 +300,10 @@ public class MapsActivity extends AppCompatActivity
     @Override
     public void onInfoWindowClose(Marker marker) {
 
+    }
+
+    protected void moveToStartLocotion(){
+        CameraUpdate cu = CameraUpdateFactory.newLatLngZoom(new LatLng(location_user_y,location_user_x) ,befor_zoom);
+        mMap.moveCamera(cu);
     }
 }
