@@ -14,7 +14,8 @@
         android:text="登山する山岳を選択してください。"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/textView2" />
+        android:id="@+id/textView2"
+        android:textAppearance="@android:style/TextAppearance.Material.Medium" />
 
     <Spinner
         android:layout_width="match_parent"
@@ -26,12 +27,37 @@
         android:layout_marginEnd="238dp"
         android:id="@+id/spinner" />
 
-    <Button
-        android:text="決定"
+    <TextView
+        android:text="ユーザー名を入力してください。*\n（ユーザー名は半角英数字10文字以内で入力してください）"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@+id/spinner"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
-        android:id="@+id/button_start" />
+        android:id="@+id/textView5"
+        android:textAppearance="@android:style/TextAppearance.Material.Medium" />
+
+    <EditText
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:inputType="textPersonName"
+        android:ems="10"
+        android:layout_below="@+id/textView5"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:id="@+id/editText"
+        android:hint="ここをタップして入力してください。"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true" />
+
+    <Button
+        android:text="開始"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/button_start"
+        android:layout_below="@+id/editText"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:elevation="0dp" />
+
 </RelativeLayout>

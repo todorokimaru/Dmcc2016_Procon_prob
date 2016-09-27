@@ -4,10 +4,12 @@ import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.SpannableStringBuilder;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.EditText;
 import android.widget.Spinner;
 
 public class StartActivity extends AppCompatActivity {
@@ -86,11 +88,15 @@ public class StartActivity extends AppCompatActivity {
 
         zoom = 15;
 
+        EditText edit = (EditText)findViewById(R.id.editText);
+        SpannableStringBuilder sp = (SpannableStringBuilder)edit.getText();
+
         Intent intent = new Intent(getApplication(), MapsActivity.class);
         intent.putExtra("Mount_name", select_mount_name);
         intent.putExtra("Mount_x", mount_loc.locate_x(select_mount_func));
         intent.putExtra("Mount_y", mount_loc.locate_y(select_mount_func));
         intent.putExtra("zoom", zoom);
+        intent.putExtra("User_id", sp.toString());
 
         startActivity(intent);
     }

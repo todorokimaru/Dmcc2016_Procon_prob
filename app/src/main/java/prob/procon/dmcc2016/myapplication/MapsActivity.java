@@ -6,6 +6,7 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
@@ -16,10 +17,13 @@ import com.google.android.gms.maps.model.TileProvider;
 import com.google.android.gms.maps.model.UrlTileProvider;
 
 import android.Manifest;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.location.Location;
+import android.location.LocationManager;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
@@ -36,7 +40,9 @@ import android.widget.Toast;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
@@ -45,8 +51,8 @@ import java.util.Locale;
  */
 public class MapsActivity extends AppCompatActivity
         implements
-        OnMapReadyCallback ,
-        LocationListener ,
+        OnMapReadyCallback,
+        LocationListener,
         GoogleMap.OnMyLocationButtonClickListener,
         ActivityCompat.OnRequestPermissionsResultCallback,
         GoogleMap.OnMarkerClickListener,
@@ -78,29 +84,64 @@ public class MapsActivity extends AppCompatActivity
 
         private void render(Marker marker, View view) {
             int badge = 0;
+            boolean flag_window = false;
+            int window_num = 0;
 
+            String info_Str = "";
 
             String title = marker.getTitle();
-            TextView titleUi = ((TextView) view.findViewById(R.id.Info_type));
-            if (title != null) {
-                // Spannable string allows us to edit the formatting of the text.
-                SpannableString titleText = new SpannableString(title);
-                titleText.setSpan(new ForegroundColorSpan(Color.RED), 0, titleText.length(), 0);
-                titleUi.setText(titleText);
-            } else {
-                titleUi.setText("");
+            for(int i = 0; i < Comment_List.size(); i++){
+                if((Comment_List.get(i).returnUser_id()+Comment_List.get(i).returnDate()).equals(title)) {
+                    flag_window = true;
+                    window_num = i;
+                }
             }
+            if(flag_window == true) {
+                if (Comment_List.get(window_num).returnInfo_type() == 0) info_Str = "野生生物";
+                else if (Comment_List.get(window_num).returnInfo_type() == 1) info_Str = "落石";
+                else if (Comment_List.get(window_num).returnInfo_type() == 2) info_Str = "滑落";
+                TextView titleUi = ((TextView) view.findViewById(R.id.Info_type));
+                if (title != null) {
+                    // Spannable string allows us to edit the formatting of the text.
+                    SpannableString titleText = new SpannableString(info_Str);
+                    titleText.setSpan(new ForegroundColorSpan(Color.RED), 0, titleText.length(), 0);
+                    titleUi.setText(titleText);
+                } else {
+                    titleUi.setText("");
+                }
 
 
-            String snippet = marker.getSnippet();
-            TextView snippetUi = ((TextView) view.findViewById(R.id.Comment_str));
-            if (snippet != null && snippet.length() > 12) {
-                SpannableString snippetText = new SpannableString(snippet);
-                snippetText.setSpan(new ForegroundColorSpan(Color.MAGENTA), 0, 10, 0);
-                snippetText.setSpan(new ForegroundColorSpan(Color.BLUE), 12, snippet.length(), 0);
-                snippetUi.setText(snippetText);
-            } else {
-                snippetUi.setText("");
+                String snippet = marker.getSnippet();
+                TextView snippetUi = ((TextView) view.findViewById(R.id.Comment_str));
+                if (snippetUi != null) {
+                    //SpannableString snippetText = new SpannableString(Comment_List.get(window_num).returnComment());
+                    //snippetText.setSpan(new ForegroundColorSpan(Color.BLACK), 0, snippet.length(), 0);
+                    snippetUi.setText(Comment_List.get(window_num).returnComment());
+                    Log.d("output:comment",Comment_List.get(window_num).returnComment());
+                    snippetUi.setTextColor(Color.BLACK);
+                } else {
+                    snippetUi.setText("");
+                }
+
+                TextView user_idUI = ((TextView) view.findViewById(R.id.User_id));
+                if (user_idUI != null) {
+                    //SpannableString snippetText = new SpannableString(Comment_List.get(window_num).returnUser_id());
+                    //snippetText.setSpan(new ForegroundColorSpan(Color.BLACK), 0, user_idUI.length(), 0);
+                    user_idUI.setText(Comment_List.get(window_num).returnUser_id());
+                    user_idUI.setTextColor(Color.BLACK);
+                } else {
+                    user_idUI.setText("");
+                }
+                TextView dateUI = ((TextView) view.findViewById(R.id.Date));
+                if (dateUI != null) {
+                    //SpannableString snippetText = new SpannableString(Comment_List.get(window_num).returnDate());
+                    //snippetText.setSpan(new ForegroundColorSpan(Color.BLACK), 0, dateUI.length(), 0);
+                    dateUI.setText(Comment_List.get(window_num).returnDate());
+                    dateUI.setTextColor(Color.BLACK);
+                    dateUI.setTextSize(10);
+                } else {
+                    dateUI.setText("");
+                }
             }
         }
     }
@@ -113,6 +154,8 @@ public class MapsActivity extends AppCompatActivity
     private Marker mLastSelectedMarker;
 
     private final List<Marker> mMarkerRainbow = new ArrayList<Marker>();
+    private final List<Marker> mMarker_AddUser = new ArrayList<Marker>();
+    private final List<MarkerInfo> Comment_List = new ArrayList<MarkerInfo>();
 
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
 
@@ -120,10 +163,13 @@ public class MapsActivity extends AppCompatActivity
 
     private GoogleMap mMap;
 
+    static final int RESULT_SUBACTIVITY = 1000;
+
     private double location_user_x;
     private double location_user_y;
     private int befor_zoom;
     private String mount_name;
+    private String user_id;
 
     private TextView mTagText;
 
@@ -134,18 +180,19 @@ public class MapsActivity extends AppCompatActivity
 
         Intent intent = getIntent();
         mount_name = intent.getStringExtra("Mount_name");
-        location_user_x = intent.getDoubleExtra("Mount_x",0.0);
-        location_user_y = intent.getDoubleExtra("Mount_y",0.0);
+        location_user_x = intent.getDoubleExtra("Mount_x", 0.0);
+        location_user_y = intent.getDoubleExtra("Mount_y", 0.0);
         befor_zoom = intent.getIntExtra("zoom", 0);
-        Log.d("Initialize","名称は:"+mount_name+"座標はx:"+location_user_x+", y:"+location_user_y+", zoom" + befor_zoom);
+        user_id = intent.getStringExtra("User_id");
 
-        mTagText = (TextView)findViewById(R.id.User_id);
+        Log.d("Initialize", "名称は:" + mount_name + "座標はx:" + location_user_x + ", y:" + location_user_y + ", zoom" + befor_zoom);
+
+        mTagText = (TextView) findViewById(R.id.User_id);
 
 
         SupportMapFragment mapFragment =
                 (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
-
     }
 
     private void enableMyLocation() {
@@ -201,10 +248,36 @@ public class MapsActivity extends AppCompatActivity
 
         mMap.setMaxZoomPreference(15);
         mMap.setMinZoomPreference(10);
+
+        LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
+        }
+
+        final Location mylocate = locationManager.getLastKnownLocation("gps");
+        mMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
+            @Override
+            public void onMapLongClick(LatLng latLng) {
+
+                Intent intent1 = new Intent(getApplicationContext(), AddLocation_Info.class);
+                intent1.putExtra("Latitude_Tap", latLng.latitude);
+                intent1.putExtra("Longitude_Tap", latLng.longitude);
+                intent1.putExtra("Latitude_User", mylocate.getLatitude());
+                intent1.putExtra("Longitude_User", mylocate.getLongitude());
+                int requestCode = RESULT_SUBACTIVITY;
+                startActivityForResult(intent1, requestCode);
+            }
+        });
     }
 
     private void addMarkersToMap() {
-
 
         int numMarkersInRainbow = 12;
         for (int i = 0; i < numMarkersInRainbow; i++) {
@@ -306,5 +379,41 @@ public class MapsActivity extends AppCompatActivity
     protected void moveToStartLocotion(){
         CameraUpdate cu = CameraUpdateFactory.newLatLngZoom(new LatLng(location_user_y,location_user_x) ,befor_zoom);
         mMap.moveCamera(cu);
+    }
+
+    protected void onActivityResult( int requestCode, int resultCode, Intent intent) {
+        super.onActivityResult(requestCode, resultCode, intent);
+
+        if(resultCode == RESULT_OK && requestCode == RESULT_SUBACTIVITY && null != intent) {
+            int info_type = intent.getIntExtra("Info_Type", 0);
+            double latitude = intent.getDoubleExtra("Latitude",0.0);
+            double longitude = intent.getDoubleExtra("Longitude",0.0);
+            String comment = intent.getStringExtra("Comment");
+
+            // 現在の時刻を取得
+            Date date = new Date();
+            // 表示形式を設定
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy'年'MM'月'dd'日'-kk'時'mm'分'ss'秒'");
+
+            LatLng location = new LatLng(latitude, longitude);
+
+
+            MarkerOptions options = new MarkerOptions();
+            options.position(location);
+            options.title(user_id+sdf.format(date));
+
+            Log.d("return:value", String.valueOf(info_type));
+            Log.d("return:comment", comment);
+
+            BitmapDescriptor icon_over = BitmapDescriptorFactory.fromResource(R.drawable.pin_denger_resize);
+            if(info_type == 0) icon_over = BitmapDescriptorFactory.fromResource(R.drawable.pin_denger_animal);
+            else if(info_type == 1) icon_over = BitmapDescriptorFactory.fromResource(R.drawable.pin_denger_stonefall);
+            else if(info_type == 2) icon_over = BitmapDescriptorFactory.fromResource(R.drawable.pin_denger_srip);
+            options.icon(icon_over);
+            Marker marker = mMap.addMarker(options);
+
+            mMarker_AddUser.add(marker);
+            Comment_List.add(new MarkerInfo(sdf.format(date),info_type,user_id,comment,""));
+        }
     }
 }

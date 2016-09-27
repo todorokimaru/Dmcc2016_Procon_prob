@@ -17,15 +17,15 @@
 
     <TextView
         android:text="TextView"
-        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@+id/Comment"
+        android:id="@+id/Comment_str"
         android:layout_alignLeft="@+id/Comment"
         android:layout_alignStart="@+id/Comment"
-        android:id="@+id/Comment_str" />
+        android:layout_width="wrap_content" />
 
     <TextView
-        android:text="TextView"
+        android:text="コメント"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/Comment"
@@ -37,20 +37,23 @@
         android:text="TextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignTop="@+id/Info_type"
-        android:layout_toRightOf="@+id/Info_type"
-        android:layout_toEndOf="@+id/Info_type"
-        android:layout_marginLeft="66dp"
-        android:layout_marginStart="66dp"
-        android:id="@+id/User_id" />
+        android:id="@+id/Date"
+        android:layout_below="@+id/User_id"
+        android:layout_alignLeft="@+id/User_id"
+        android:maxLines="2"
+        android:scrollHorizontally="true"
+        android:layout_alignStart="@+id/User_id" />
 
     <TextView
         android:text="TextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/User_id"
-        android:layout_alignLeft="@+id/User_id"
-        android:layout_alignStart="@+id/User_id"
-        android:id="@+id/Date" />
+        android:id="@+id/User_id"
+        android:layout_alignBaseline="@+id/Info_type"
+        android:layout_alignBottom="@+id/Info_type"
+        android:layout_toRightOf="@+id/Info_type"
+        android:layout_toEndOf="@+id/Info_type"
+        android:layout_marginLeft="41dp"
+        android:layout_marginStart="41dp" />
 
 </RelativeLayout>
