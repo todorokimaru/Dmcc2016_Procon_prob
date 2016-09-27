@@ -91,6 +91,7 @@ public class MapsActivity extends AppCompatActivity
                 titleUi.setText("");
             }
 
+
             String snippet = marker.getSnippet();
             TextView snippetUi = ((TextView) view.findViewById(R.id.Comment_str));
             if (snippet != null && snippet.length() > 12) {
