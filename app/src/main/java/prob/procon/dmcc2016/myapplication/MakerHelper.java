@@ -10,35 +10,26 @@ import android.database.sqlite.SQLiteOpenHelper;
 
 public class MakerHelper extends SQLiteOpenHelper{
 
-    static final String DB_NAME = "sqlite_maker";
-    static final int DB_VERSION = 1;
+    private static MakerHelper sSingleton = null;
 
-    // SQL文をStringに保持しておく
-    static String CREATE_TABLE = null;
-    static final String DROP_TABLE = "drop table mytable;";
-
-    // コンストラクタ
-    // CREATE用のSQLを取得する
-    public MakerHelper(Context mContext, String sql){
-        super(mContext,DB_NAME,null,DB_VERSION);
-        CREATE_TABLE = sql;
+    public static synchronized MakerHelper getInstance(Context context) {
+        if (sSingleton == null) {
+            sSingleton = new MakerHelper(context);
+        }
+        return sSingleton;
     }
 
-    public MakerHelper(Context context, String name,
-                       SQLiteDatabase.CursorFactory factory, int version) {
-        super(context, name, factory, version);
+    private MakerHelper(Context context) {
+        super(context, DatabaseManager.DB_NAME, null, DatabaseManager.DB_VERSION);
     }
 
-    // DBが存在しない状態でOpenすると、onCreateがコールされる
-    // 新規作成されたDBのインスタンスが付与されるので、テーブルを作成する。
     @Override
-    public void onCreate(SQLiteDatabase db) {
-        db.execSQL(CREATE_TABLE);
+    public void onCreate(SQLiteDatabase sqLiteDatabase) {
+        sqLiteDatabase.execSQL(DatabaseManager.CREATE_TABLE_SQL);
     }
 
-    // コンストラクタで指定したバージョンと、参照先のDBのバージョンに差異があるときにコールされる
-    // 今回バージョンは１固定のため、処理は行わない。
     @Override
-    public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+    public void onUpgrade(SQLiteDatabase sqLiteDatabase, int i, int i1) {
+
     }
 }

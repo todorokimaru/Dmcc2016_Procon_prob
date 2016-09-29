@@ -1,6 +1,7 @@
 package prob.procon.dmcc2016.myapplication;
 
 import android.content.Intent;
+import android.hardware.Camera;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.SpannableStringBuilder;
@@ -11,6 +12,11 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+import static android.app.Activity.RESULT_OK;
 
 public class AddLocation_Info extends AppCompatActivity {
 
@@ -25,16 +31,27 @@ public class AddLocation_Info extends AppCompatActivity {
     private double select_latitude;
     private double select_longitude;
     private int Info_type;
+    private String date_str;
 
     private Spinner InfoSpinner;
     private Spinner LocSpinner;
 
+
+    private Camera mCam = null;
+
+    private CameraPreview mCamPreview = null;
+
+    private Date info_date;
+
     Button add_button;
+    Button camera_button;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_location__info);
+
+        info_date = new Date();
 
         InfoSpinner = (Spinner)findViewById(R.id.info_type_spinner);
         LocSpinner = (Spinner)findViewById(R.id.location_spinner);
@@ -106,6 +123,9 @@ public class AddLocation_Info extends AppCompatActivity {
             public void onClick(View v) {
                 Log.d("Info_type", String.valueOf(Info_type));
                 Log.d("Comment", sp.toString());
+
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy'年'MM'月'dd'日'-kk'時'mm'分'ss'秒'");
+
                 Intent intent = new Intent();
                 intent.putExtra("Info_Type", Info_type);
                 intent.putExtra("Latitude", select_latitude);
@@ -116,6 +136,25 @@ public class AddLocation_Info extends AppCompatActivity {
             }
         });
 
+        camera_button = (Button)findViewById(R.id.picture_button);
+        camera_button.setOnClickListener(new View.OnClickListener(){
+
+            EditText edit = (EditText)findViewById(R.id.editText_comment);
+            SpannableStringBuilder sp = (SpannableStringBuilder)edit.getText();
+
+            @Override
+            public void onClick(View v) {
+
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd-kkmmss");
+
+                date_str = sdf.format(info_date);
+
+                Intent intent = new Intent(getApplication(), SimpleCameraActivity.class);
+                intent.putExtra("date", date_str);
+
+                startActivity(intent);
+            }
+        });
 
     }
 }

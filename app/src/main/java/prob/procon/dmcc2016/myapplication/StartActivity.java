@@ -16,19 +16,6 @@ public class StartActivity extends AppCompatActivity {
 
     private String[] mStr_Mount = {"呉羽山","大汝山"};
 
-    private final String TABLE_NAME = "sql_makers";
-    private final String FIELD_ID = "_id";
-    private final String FIELD_MOUNT_NAME = "mount_name";
-    private final String FIELD_DATE = "date";
-    private final String FIELD_INFO_TYPE = "info_type";
-    private final String FIELD_USER_ID = "user_id";
-    private final String FIELD_COMMENT = "comment";
-    private final String FIELD_GRAPH = "graph";
-
-    private final String CREATE_TABLE_SQL = "CREATE TABLE "+TABLE_NAME+" ( "+FIELD_ID+" INTEGER PRIMARY KEY AUTOINCREMENT, "+FIELD_MOUNT_NAME+" TEXT NOT NULL, "
-                                                +FIELD_DATE+" TEXT NOT NULL, "+FIELD_INFO_TYPE+" INTEGER, "+FIELD_USER_ID+" TEXT NOT NULL, "+FIELD_COMMENT+" TEXT, "
-                                                +FIELD_GRAPH+" TEXT);";
-
     private Spinner nSpinner;
 
     private String select_mount_name;
@@ -37,7 +24,7 @@ public class StartActivity extends AppCompatActivity {
     private int  select_mount_y;
     private int zoom;
 
-    private static MakerHelper singleton;
+    private static MakerHelper mDBHelper;
 
     Mount_Location mount_loc = new Mount_Location();
 
@@ -48,8 +35,8 @@ public class StartActivity extends AppCompatActivity {
 
         nSpinner = (Spinner)findViewById(R.id.spinner);
 
-        MakerHelper hlpr = new MakerHelper(getApplicationContext(), CREATE_TABLE_SQL);
-        SQLiteDatabase mydb = hlpr.getWritableDatabase();
+        mDBHelper = MakerHelper.getInstance(getApplicationContext());
+        mDBHelper.getWritableDatabase();
 
         ArrayAdapter<String> adapter
                 = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, mStr_Mount);
@@ -93,6 +80,7 @@ public class StartActivity extends AppCompatActivity {
 
         Intent intent = new Intent(getApplication(), MapsActivity.class);
         intent.putExtra("Mount_name", select_mount_name);
+        intent.putExtra("Mount_name_db", select_mount_func);
         intent.putExtra("Mount_x", mount_loc.locate_x(select_mount_func));
         intent.putExtra("Mount_y", mount_loc.locate_y(select_mount_func));
         intent.putExtra("zoom", zoom);

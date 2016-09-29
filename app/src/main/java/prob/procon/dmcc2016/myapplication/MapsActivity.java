@@ -17,9 +17,11 @@ import com.google.android.gms.maps.model.TileProvider;
 import com.google.android.gms.maps.model.UrlTileProvider;
 
 import android.Manifest;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.location.Location;
@@ -153,6 +155,8 @@ public class MapsActivity extends AppCompatActivity
 
     private Marker mLastSelectedMarker;
 
+    private MakerHelper mDBHelper;
+
     private final List<Marker> mMarkerRainbow = new ArrayList<Marker>();
     private final List<Marker> mMarker_AddUser = new ArrayList<Marker>();
     private final List<MarkerInfo> Comment_List = new ArrayList<MarkerInfo>();
@@ -169,17 +173,24 @@ public class MapsActivity extends AppCompatActivity
     private double location_user_y;
     private int befor_zoom;
     private String mount_name;
+    private String mount_name_db;
     private String user_id;
 
     private TextView mTagText;
+
+    private SQLiteDatabase writableDB;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
 
+        mDBHelper = MakerHelper.getInstance(getApplicationContext());
+        writableDB = mDBHelper.getWritableDatabase();
+
         Intent intent = getIntent();
         mount_name = intent.getStringExtra("Mount_name");
+        mount_name_db = intent.getStringExtra("Mount_name_db");
         location_user_x = intent.getDoubleExtra("Mount_x", 0.0);
         location_user_y = intent.getDoubleExtra("Mount_y", 0.0);
         befor_zoom = intent.getIntExtra("zoom", 0);
@@ -235,6 +246,7 @@ public class MapsActivity extends AppCompatActivity
                     throw new AssertionError(e);
                 }
                 Log.d("getTile","座標はx:"+x+", y:"+y+", zoom" + zoom);
+
                 return url;
             }
         };
@@ -414,6 +426,15 @@ public class MapsActivity extends AppCompatActivity
 
             mMarker_AddUser.add(marker);
             Comment_List.add(new MarkerInfo(sdf.format(date),info_type,user_id,comment,""));
+
+            ContentValues values = new ContentValues();
+            values.put(DatabaseManager.FIELD_MOUNT_NAME, mount_name_db);
+            values.put(DatabaseManager.FIELD_DATE, sdf.format(date));
+            values.put(DatabaseManager.FIELD_INFO_TYPE, info_type);
+            values.put(DatabaseManager.FIELD_USER_ID, user_id);
+            values.put(DatabaseManager.FIELD_COMMENT, comment);
+            values.put(DatabaseManager.FIELD_GRAPH, "");
+            writableDB.insert(DatabaseManager.TABLE_NAME, null, values);
         }
     }
 }
