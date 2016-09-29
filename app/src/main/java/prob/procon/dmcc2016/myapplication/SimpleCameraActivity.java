@@ -1,147 +1,154 @@
 package prob.procon.dmcc2016.myapplication;
 
-import android.content.ContentResolver;
-import android.content.ContentValues;
-import android.content.Intent;
-import android.hardware.Camera;
-import android.os.Environment;
-import android.provider.MediaStore;
+import android.content.Context;
+import android.graphics.SurfaceTexture;
+import android.hardware.camera2.CameraAccessException;
+import android.hardware.camera2.CameraCaptureSession;
+import android.hardware.camera2.CameraCharacteristics;
+import android.hardware.camera2.CameraDevice;
+import android.hardware.camera2.CameraManager;
+import android.hardware.camera2.CaptureRequest;
+import android.hardware.camera2.params.StreamConfigurationMap;
+import android.os.Handler;
+import android.os.HandlerThread;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
-import android.view.MotionEvent;
-import android.view.View;
-import android.widget.FrameLayout;
+import android.util.Size;
+import android.view.Surface;
+import android.view.TextureView;
+import android.widget.Toast;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
+import java.util.Collections;
+
+// Camera.v2 Android ver.21 over only use //
 
 public class SimpleCameraActivity extends AppCompatActivity {
 
-    // カメラインスタンス
-    private Camera mCam = null;
-
-    // カメラプレビュークラス
-    private CameraPreview mCamPreview = null;
-
-    // 画面タッチの2度押し禁止用フラグ
-    private boolean mIsTake = false;
-
-    // 画像保存用の日付データ
-    private String info_date;
+    private Camera mCamera;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_simple_camera);
 
-        Intent intent = getIntent();
-        info_date = intent.getStringExtra("date");
+        TextureView textureView = (TextureView) findViewById(R.id.textureView);
+        textureView.setSurfaceTextureListener(new TextureView.SurfaceTextureListener() {
+            @Override
+            public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
+                mCamera.open();
+            }
 
-        // カメラインスタンスの取得
-        try {
-            mCam = Camera.open();
-        } catch (Exception e) {
-            // エラー
-            this.finish();
+            @Override
+            public void onSurfaceTextureSizeChanged(SurfaceTexture surface, int width, int height) {}
+
+            @Override
+            public boolean onSurfaceTextureDestroyed(SurfaceTexture surface) {
+                return false;
+            }
+
+            @Override
+            public void onSurfaceTextureUpdated(SurfaceTexture surface) {}
+        });
+
+        mCamera = new Camera(textureView);
+    }
+
+    class Camera {
+        private CameraDevice mCamera;
+        private TextureView mTextureView;
+        private Size mCameraSize;
+        private CaptureRequest.Builder mPreviewBuilder;
+        private CameraCaptureSession mPreviewSession;
+
+        private CameraDevice.StateCallback mCameraDeviceCallback = new CameraDevice.StateCallback() {
+            @Override
+            public void onOpened(@NonNull CameraDevice camera) {
+                mCamera = camera;
+                createCaptureSession();
+            }
+
+            @Override
+            public void onDisconnected(@NonNull CameraDevice camera) {
+                camera.close();
+                mCamera = null;
+            }
+
+            @Override
+            public void onError(@NonNull CameraDevice camera, int error) {
+                camera.close();
+                mCamera = null;
+            }
+        };
+
+        CameraCaptureSession.StateCallback mCameraCaptureSessionCallback = new CameraCaptureSession.StateCallback() {
+            @Override
+            public void onConfigured(@NonNull CameraCaptureSession session) {
+                mPreviewSession = session;
+                updatePreview();
+            }
+
+            @Override
+            public void onConfigureFailed(@NonNull CameraCaptureSession session) {
+                Toast.makeText(SimpleCameraActivity.this, "onConfigureFailed", Toast.LENGTH_LONG).show();
+            }
+        };
+
+        public Camera(TextureView textureView) {
+            mTextureView = textureView;
         }
 
-        // FrameLayout に CameraView クラスを設定
-        FrameLayout preview = (FrameLayout)findViewById(R.id.cameraPreview);
-        mCamPreview = new CameraPreview(this, mCam);
-        preview.addView(mCamPreview);
+        public void open() {
+            try {
+                CameraManager manager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
+                for (String cameraId : manager.getCameraIdList()) {
+                    CameraCharacteristics characteristics = manager.getCameraCharacteristics(cameraId);
+                    if (characteristics.get(CameraCharacteristics.LENS_FACING) == CameraCharacteristics.LENS_FACING_BACK) {
+                        StreamConfigurationMap map = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
+                        mCameraSize = map.getOutputSizes(SurfaceTexture.class)[0];
+                        manager.openCamera(cameraId, mCameraDeviceCallback, null);
 
-        /*
-        // mCamPreview に タッチイベントを設定
-        mCamPreview.setOnTouchListener(new View.OnTouchListener() {
-            public boolean onTouch(View v, MotionEvent event) {
-                if (event.getAction() == MotionEvent.ACTION_DOWN) {
-                    if (!mIsTake) {
-                        // 撮影中の2度押し禁止用フラグ
-                        mIsTake = true;
-                        // 画像取得
-                        mCam.takePicture(null, null, mPicJpgListener);
+                        return;
                     }
                 }
-                return true;
+            } catch (CameraAccessException e) {
+                e.printStackTrace();
             }
-        });
-        */
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        // カメラ破棄インスタンスを解放
-        if (mCam != null) {
-            mCam.release();
-            mCam = null;
         }
-    }
 
-
-    /**
-     * JPEG データ生成完了時のコールバック
-     */
-    private Camera.PictureCallback mPicJpgListener = new Camera.PictureCallback() {
-        public void onPictureTaken(byte[] data, Camera camera) {
-            if (data == null) {
+        private void createCaptureSession() {
+            if (!mTextureView.isAvailable()) {
                 return;
             }
 
-            String saveDir = Environment.getExternalStorageDirectory().getPath() + "/test";
-
-            // SD カードフォルダを取得
-            File file = new File(saveDir);
-
-            // フォルダ作成
-            if (!file.exists()) {
-                if (!file.mkdir()) {
-                    Log.e("Debug", "Make Dir Error");
-                }
-            }
-
-            // 画像保存パス
-            String imgPath = saveDir + "/" + info_date + ".jpg";
-
-            // ファイル保存
-            FileOutputStream fos;
+            SurfaceTexture texture = mTextureView.getSurfaceTexture();
+            texture.setDefaultBufferSize(mCameraSize.getWidth(), mCameraSize.getHeight());
+            Surface surface = new Surface(texture);
             try {
-                fos = new FileOutputStream(imgPath, true);
-                fos.write(data);
-                fos.close();
-
-                // アンドロイドのデータベースへ登録
-                // (登録しないとギャラリーなどにすぐに反映されないため)
-                registAndroidDB(imgPath);
-
-            } catch (Exception e) {
-                Log.e("Debug", e.getMessage());
+                mPreviewBuilder = mCamera.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
+            } catch (CameraAccessException e) {
+                e.printStackTrace();
             }
 
-            fos = null;
-
-            // takePicture するとプレビューが停止するので、再度プレビュースタート
-            mCam.startPreview();
-
-            mIsTake = false;
+            mPreviewBuilder.addTarget(surface);
+            try {
+                mCamera.createCaptureSession(Collections.singletonList(surface), mCameraCaptureSessionCallback, null);
+            } catch (CameraAccessException e) {
+                e.printStackTrace();
+            }
         }
-    };
 
-    /**
-     * アンドロイドのデータベースへ画像のパスを登録
-     * @param path 登録するパス
-     */
-    private void registAndroidDB(String path) {
-        // アンドロイドのデータベースへ登録
-        // (登録しないとギャラリーなどにすぐに反映されないため)
-        ContentValues values = new ContentValues();
-        ContentResolver contentResolver = SimpleCameraActivity.this.getContentResolver();
-        values.put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg");
-        values.put("_data", path);
-        contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
+        private void updatePreview() {
+            mPreviewBuilder.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
+            HandlerThread thread = new HandlerThread("CameraPreview");
+            thread.start();
+            Handler backgroundHandler = new Handler(thread.getLooper());
+
+            try {
+                mPreviewSession.setRepeatingRequest(mPreviewBuilder.build(), null, backgroundHandler);
+            } catch (CameraAccessException e) {
+                e.printStackTrace();
+            }
+        }
     }
 }
