@@ -1,6 +1,9 @@
 package prob.procon.dmcc2016.myapplication;
 
 import android.content.Context;
+import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.SurfaceTexture;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraCaptureSession;
@@ -9,146 +12,82 @@ import android.hardware.camera2.CameraDevice;
 import android.hardware.camera2.CameraManager;
 import android.hardware.camera2.CaptureRequest;
 import android.hardware.camera2.params.StreamConfigurationMap;
+import android.media.Image;
+import android.media.ImageReader;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Size;
+import android.view.KeyEvent;
 import android.view.Surface;
 import android.view.TextureView;
+import android.view.View;
+import android.widget.ImageView;
 import android.widget.Toast;
 
+import java.nio.ByteBuffer;
 import java.util.Collections;
 
 // Camera.v2 Android ver.21 over only use //
 
 public class SimpleCameraActivity extends AppCompatActivity {
 
-    private Camera mCamera;
+    private AutoFitTextureView mTextureView;
+    private ImageView mImageView;
+    private Camera2StateMachine mCamera2;
+    private String date_str;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_simple_camera);
 
-        TextureView textureView = (TextureView) findViewById(R.id.textureView);
-        textureView.setSurfaceTextureListener(new TextureView.SurfaceTextureListener() {
-            @Override
-            public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
-                mCamera.open();
-            }
+        Intent intent = getIntent();
+        date_str = intent.getStringExtra("date");
 
-            @Override
-            public void onSurfaceTextureSizeChanged(SurfaceTexture surface, int width, int height) {}
 
-            @Override
-            public boolean onSurfaceTextureDestroyed(SurfaceTexture surface) {
-                return false;
-            }
-
-            @Override
-            public void onSurfaceTextureUpdated(SurfaceTexture surface) {}
-        });
-
-        mCamera = new Camera(textureView);
+        mTextureView = (AutoFitTextureView) findViewById(R.id.textureView);
+        mImageView = (ImageView) findViewById(R.id.ImageView);
+        mCamera2 = new Camera2StateMachine();
     }
 
-    class Camera {
-        private CameraDevice mCamera;
-        private TextureView mTextureView;
-        private Size mCameraSize;
-        private CaptureRequest.Builder mPreviewBuilder;
-        private CameraCaptureSession mPreviewSession;
-
-        private CameraDevice.StateCallback mCameraDeviceCallback = new CameraDevice.StateCallback() {
-            @Override
-            public void onOpened(@NonNull CameraDevice camera) {
-                mCamera = camera;
-                createCaptureSession();
-            }
-
-            @Override
-            public void onDisconnected(@NonNull CameraDevice camera) {
-                camera.close();
-                mCamera = null;
-            }
-
-            @Override
-            public void onError(@NonNull CameraDevice camera, int error) {
-                camera.close();
-                mCamera = null;
-            }
-        };
-
-        CameraCaptureSession.StateCallback mCameraCaptureSessionCallback = new CameraCaptureSession.StateCallback() {
-            @Override
-            public void onConfigured(@NonNull CameraCaptureSession session) {
-                mPreviewSession = session;
-                updatePreview();
-            }
-
-            @Override
-            public void onConfigureFailed(@NonNull CameraCaptureSession session) {
-                Toast.makeText(SimpleCameraActivity.this, "onConfigureFailed", Toast.LENGTH_LONG).show();
-            }
-        };
-
-        public Camera(TextureView textureView) {
-            mTextureView = textureView;
+    @Override
+    protected void onResume() {
+        super.onResume();
+        mCamera2.open(this, mTextureView);
+    }
+    @Override
+    protected void onPause() {
+        mCamera2.close();
+        super.onPause();
+    }
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_BACK && mImageView.getVisibility() == View.VISIBLE) {
+            mTextureView.setVisibility(View.VISIBLE);
+            mImageView.setVisibility(View.INVISIBLE);
+            return false;
         }
+        return super.onKeyDown(keyCode, event);
+    }
+    public void onClickShutter(View view) {
+        mCamera2.takePicture(new ImageReader.OnImageAvailableListener() {
+            @Override
+            public void onImageAvailable(ImageReader reader) {
+                // 撮れた画像をImageViewに貼り付けて表示。
+                final Image image = reader.acquireLatestImage();
+                ByteBuffer buffer = image.getPlanes()[0].getBuffer();
+                byte[] bytes = new byte[buffer.remaining()];
+                buffer.get(bytes);
+                Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+                image.close();
 
-        public void open() {
-            try {
-                CameraManager manager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
-                for (String cameraId : manager.getCameraIdList()) {
-                    CameraCharacteristics characteristics = manager.getCameraCharacteristics(cameraId);
-                    if (characteristics.get(CameraCharacteristics.LENS_FACING) == CameraCharacteristics.LENS_FACING_BACK) {
-                        StreamConfigurationMap map = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
-                        mCameraSize = map.getOutputSizes(SurfaceTexture.class)[0];
-                        manager.openCamera(cameraId, mCameraDeviceCallback, null);
-
-                        return;
-                    }
-                }
-            } catch (CameraAccessException e) {
-                e.printStackTrace();
+                mImageView.setImageBitmap(bitmap);
+                mImageView.setVisibility(View.VISIBLE);
+                mTextureView.setVisibility(View.INVISIBLE);
             }
-        }
-
-        private void createCaptureSession() {
-            if (!mTextureView.isAvailable()) {
-                return;
-            }
-
-            SurfaceTexture texture = mTextureView.getSurfaceTexture();
-            texture.setDefaultBufferSize(mCameraSize.getWidth(), mCameraSize.getHeight());
-            Surface surface = new Surface(texture);
-            try {
-                mPreviewBuilder = mCamera.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
-            } catch (CameraAccessException e) {
-                e.printStackTrace();
-            }
-
-            mPreviewBuilder.addTarget(surface);
-            try {
-                mCamera.createCaptureSession(Collections.singletonList(surface), mCameraCaptureSessionCallback, null);
-            } catch (CameraAccessException e) {
-                e.printStackTrace();
-            }
-        }
-
-        private void updatePreview() {
-            mPreviewBuilder.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
-            HandlerThread thread = new HandlerThread("CameraPreview");
-            thread.start();
-            Handler backgroundHandler = new Handler(thread.getLooper());
-
-            try {
-                mPreviewSession.setRepeatingRequest(mPreviewBuilder.build(), null, backgroundHandler);
-            } catch (CameraAccessException e) {
-                e.printStackTrace();
-            }
-        }
+        });
     }
 }

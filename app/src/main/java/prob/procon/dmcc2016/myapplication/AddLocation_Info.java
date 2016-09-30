@@ -27,9 +27,11 @@ public class AddLocation_Info extends AppCompatActivity {
     private double longitude_tap;
     private double latitude_user;
     private double longitude_user;
+    private double higher_user;
 
     private double select_latitude;
     private double select_longitude;
+    private double select_higher;
     private int Info_type;
     private String date_str;
 
@@ -69,6 +71,7 @@ public class AddLocation_Info extends AppCompatActivity {
         longitude_tap = intent.getDoubleExtra("Longitude_Tap", 0.0);
         latitude_user = intent.getDoubleExtra("Latitude_User", 0.0);
         longitude_user = intent.getDoubleExtra("Longitude_User", 0.0);
+        higher_user = intent.getDoubleExtra("Higher_User", 0.0);
 
         InfoSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener(){
             @Override
@@ -100,10 +103,12 @@ public class AddLocation_Info extends AppCompatActivity {
                 if(item.equals("タップした位置")){
                     select_latitude = latitude_tap;
                     select_longitude = longitude_tap;
+                    select_higher = 0.0f;
                 }
                 else if(item.equals("現在地")){
                     select_latitude = latitude_user;
                     select_longitude = longitude_user;
+                    select_higher = higher_user;
                 }
             }
 
@@ -130,6 +135,7 @@ public class AddLocation_Info extends AppCompatActivity {
                 intent.putExtra("Info_Type", Info_type);
                 intent.putExtra("Latitude", select_latitude);
                 intent.putExtra("Longitude", select_longitude);
+                intent.putExtra("Higher", select_higher);
                 intent.putExtra("Comment", sp.toString());
                 setResult(RESULT_OK, intent);
                 finish();

@@ -49,11 +49,11 @@ public class StartActivity extends AppCompatActivity {
                 String item = (String)spinner.getSelectedItem();
                 if(item.equals("呉羽山")){
                     select_mount_name = item;
-                    select_mount_func = "Kureha";
+                    select_mount_func = "AA";
                 }
                 else if(item.equals("大汝山")){
                     select_mount_name = item;
-                    select_mount_func = "Onanji";
+                    select_mount_func = "BB";
                 }
             }
 

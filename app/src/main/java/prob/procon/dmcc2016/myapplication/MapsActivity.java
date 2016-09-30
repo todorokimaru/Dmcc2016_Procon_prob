@@ -21,8 +21,8 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.location.Location;
 import android.location.LocationManager;
@@ -35,8 +35,6 @@ import android.text.SpannableString;
 import android.text.style.ForegroundColorSpan;
 import android.util.Log;
 import android.view.View;
-import android.widget.ImageView;
-import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -85,7 +83,6 @@ public class MapsActivity extends AppCompatActivity
 
 
         private void render(Marker marker, View view) {
-            int badge = 0;
             boolean flag_window = false;
             int window_num = 0;
 
@@ -109,7 +106,7 @@ public class MapsActivity extends AppCompatActivity
                     titleText.setSpan(new ForegroundColorSpan(Color.RED), 0, titleText.length(), 0);
                     titleUi.setText(titleText);
                 } else {
-                    titleUi.setText("");
+                    titleUi.setText("No Info");
                 }
 
 
@@ -122,7 +119,7 @@ public class MapsActivity extends AppCompatActivity
                     Log.d("output:comment",Comment_List.get(window_num).returnComment());
                     snippetUi.setTextColor(Color.BLACK);
                 } else {
-                    snippetUi.setText("");
+                    snippetUi.setText("No Info");
                 }
 
                 TextView user_idUI = ((TextView) view.findViewById(R.id.User_id));
@@ -132,7 +129,7 @@ public class MapsActivity extends AppCompatActivity
                     user_idUI.setText(Comment_List.get(window_num).returnUser_id());
                     user_idUI.setTextColor(Color.BLACK);
                 } else {
-                    user_idUI.setText("");
+                    user_idUI.setText("No Info");
                 }
                 TextView dateUI = ((TextView) view.findViewById(R.id.Date));
                 if (dateUI != null) {
@@ -142,7 +139,7 @@ public class MapsActivity extends AppCompatActivity
                     dateUI.setTextColor(Color.BLACK);
                     dateUI.setTextSize(10);
                 } else {
-                    dateUI.setText("");
+                    dateUI.setText("No Info");
                 }
             }
         }
@@ -152,19 +149,14 @@ public class MapsActivity extends AppCompatActivity
             "http://cyberjapandata.gsi.go.jp/xyz/relief/%d/%d/%d.png";
 
     private TileOverlay jMaps;
-
     private Marker mLastSelectedMarker;
-
     private MakerHelper mDBHelper;
-
+    private TCP_Client_Thread tcp_client;
     private final List<Marker> mMarkerRainbow = new ArrayList<Marker>();
     private final List<Marker> mMarker_AddUser = new ArrayList<Marker>();
     private final List<MarkerInfo> Comment_List = new ArrayList<MarkerInfo>();
-
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
-
     private boolean mPermissionDenied = false;
-
     private GoogleMap mMap;
 
     static final int RESULT_SUBACTIVITY = 1000;
@@ -175,10 +167,10 @@ public class MapsActivity extends AppCompatActivity
     private String mount_name;
     private String mount_name_db;
     private String user_id;
-
     private TextView mTagText;
-
     private SQLiteDatabase writableDB;
+    private String server_ip;
+    private int server_port;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -187,6 +179,7 @@ public class MapsActivity extends AppCompatActivity
 
         mDBHelper = MakerHelper.getInstance(getApplicationContext());
         writableDB = mDBHelper.getWritableDatabase();
+        tcp_client = new TCP_Client_Thread();
 
         Intent intent = getIntent();
         mount_name = intent.getStringExtra("Mount_name");
@@ -274,6 +267,7 @@ public class MapsActivity extends AppCompatActivity
         }
 
         final Location mylocate = locationManager.getLastKnownLocation("gps");
+
         mMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
             @Override
             public void onMapLongClick(LatLng latLng) {
@@ -283,10 +277,42 @@ public class MapsActivity extends AppCompatActivity
                 intent1.putExtra("Longitude_Tap", latLng.longitude);
                 intent1.putExtra("Latitude_User", mylocate.getLatitude());
                 intent1.putExtra("Longitude_User", mylocate.getLongitude());
+                intent1.putExtra("Higher_User", mylocate.getAltitude());
                 int requestCode = RESULT_SUBACTIVITY;
                 startActivityForResult(intent1, requestCode);
             }
         });
+    }
+
+    private void addMarkersStartUp(){
+        Cursor cursor = writableDB.query(DatabaseManager.TABLE_NAME, new String[] {
+                DatabaseManager.FIELD_LOCATION, DatabaseManager.FIELD_DATE, DatabaseManager.FIELD_INFO_TYPE,
+                DatabaseManager.FIELD_COMMENT, DatabaseManager.FIELD_GRAPH
+        }, null, null, null, null, DatabaseManager.FIELD_ID + " DESC");
+        boolean isEof = cursor.moveToFirst();
+        while(isEof){
+            String[] str = cursor.getString(cursor.getColumnIndex(DatabaseManager.FIELD_LOCATION)).split("-");
+            String date = cursor.getString(cursor.getColumnIndex(DatabaseManager.FIELD_DATE));
+            String comment = cursor.getString(cursor.getColumnIndex(DatabaseManager.FIELD_COMMENT));
+            double latitude = Double.parseDouble(str[0]);
+            double longitude = Double.parseDouble(str[1]);
+            int info_type = cursor.getInt(cursor.getColumnIndex(DatabaseManager.FIELD_INFO_TYPE));
+
+            LatLng location = new LatLng(latitude, longitude);
+
+            MarkerOptions options = new MarkerOptions();
+            options.position(location);
+
+            BitmapDescriptor icon_over = BitmapDescriptorFactory.fromResource(R.drawable.pin_denger_resize);
+            if(info_type == 0) icon_over = BitmapDescriptorFactory.fromResource(R.drawable.pin_denger_animal);
+            else if(info_type == 1) icon_over = BitmapDescriptorFactory.fromResource(R.drawable.pin_denger_stonefall);
+            else if(info_type == 2) icon_over = BitmapDescriptorFactory.fromResource(R.drawable.pin_denger_srip);
+            options.icon(icon_over);
+            Marker marker = mMap.addMarker(options);
+
+            mMarker_AddUser.add(marker);
+            Comment_List.add(new MarkerInfo(date,info_type,user_id,comment,""));
+        }
     }
 
     private void addMarkersToMap() {
@@ -400,12 +426,15 @@ public class MapsActivity extends AppCompatActivity
             int info_type = intent.getIntExtra("Info_Type", 0);
             double latitude = intent.getDoubleExtra("Latitude",0.0);
             double longitude = intent.getDoubleExtra("Longitude",0.0);
+            double higher = intent.getDoubleExtra("Higher", 0.0);
             String comment = intent.getStringExtra("Comment");
+
+            String location_str = latitude + "-"+longitude+"-"+higher;
 
             // 現在の時刻を取得
             Date date = new Date();
             // 表示形式を設定
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyy'年'MM'月'dd'日'-kk'時'mm'分'ss'秒'");
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd-kkmmss");
 
             LatLng location = new LatLng(latitude, longitude);
 
@@ -429,12 +458,21 @@ public class MapsActivity extends AppCompatActivity
 
             ContentValues values = new ContentValues();
             values.put(DatabaseManager.FIELD_MOUNT_NAME, mount_name_db);
+            values.put(DatabaseManager.FIELD_LOCATION, location_str);
             values.put(DatabaseManager.FIELD_DATE, sdf.format(date));
             values.put(DatabaseManager.FIELD_INFO_TYPE, info_type);
             values.put(DatabaseManager.FIELD_USER_ID, user_id);
             values.put(DatabaseManager.FIELD_COMMENT, comment);
             values.put(DatabaseManager.FIELD_GRAPH, "");
             writableDB.insert(DatabaseManager.TABLE_NAME, null, values);
+
+            if(tcp_client.connectTh(server_ip, server_port)){
+                String data_str = mount_name_db +","+location_str+","+sdf.format(date)+","+info_type+","+user_id+","+comment+","+"";
+                byte[] data = data_str.getBytes();
+                tcp_client.sendTh(data);
+                tcp_client.close();
+            }
         }
     }
+
 }
