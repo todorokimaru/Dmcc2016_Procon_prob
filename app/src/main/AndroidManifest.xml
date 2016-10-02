@@ -60,7 +60,21 @@
             android:name=".AddLocation_Info"
             android:label="AddMarker" />
         <activity android:name=".SimpleCameraActivity" />
-        <activity android:name=".AddSpot_Info"></activity>
+        <activity android:name=".AddSpot_Info" />
+        <activity
+            android:name=".TwitterOAuthActivity"
+            android:launchMode="singleTask">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"></action>
+
+                <category android:name="android.intent.category.DEFAULT"></category>
+                <category android:name="android.intent.category.BROWSABLE"></category>
+
+                <data
+                    android:host="twitter"
+                    android:scheme="dmcc2016"></data>
+            </intent-filter>
+        </activity>
     </application>
 
 </manifest>

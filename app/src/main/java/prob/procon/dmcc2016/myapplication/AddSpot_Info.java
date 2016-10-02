@@ -37,6 +37,7 @@ public class AddSpot_Info extends AppCompatActivity {
 
     Button add_button;
     Button camera_button;
+    Button twitter_OAuth_button;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -120,6 +121,19 @@ public class AddSpot_Info extends AppCompatActivity {
 
                 Intent intent = new Intent(getApplication(), SimpleCameraActivity.class);
                 intent.putExtra("date", date_str);
+
+                startActivity(intent);
+            }
+        });
+
+        twitter_OAuth_button = (Button)findViewById(R.id.twitter_oauth_button);
+        twitter_OAuth_button.setOnClickListener(new View.OnClickListener(){
+
+            @Override
+            public void onClick(View v) {
+                Log.d("Twitter", "OAuth認証");
+
+                Intent intent = new Intent(getApplication(), TwitterOAuthActivity.class);
 
                 startActivity(intent);
             }
