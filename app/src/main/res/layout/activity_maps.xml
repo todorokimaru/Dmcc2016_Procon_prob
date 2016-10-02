@@ -1,21 +1,64 @@
-<fragment xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:map="http://schemas.android.com/apk/res-auto"
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/map"
-    android:name="com.google.android.gms.maps.SupportMapFragment"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context="prob.procon.dmcc2016.myapplication.MapsActivity"
-    tools:layout="@layout/place_autocomplete_item_prediction" >
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent">
 
-    <Button
+    <fragment xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:map="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:id="@+id/map"
+        android:name="com.google.android.gms.maps.SupportMapFragment"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:context="prob.procon.dmcc2016.myapplication.MapsActivity"
+        tools:layout="@layout/place_autocomplete_item_prediction" >
+
+    </fragment>
+
+    <ImageView
+        android:layout_width="200dp"
+        android:layout_height="50dp"
+        app:srcCompat="@color/cast_expanded_controller_progress_text_color"
+        android:id="@+id/imageView2"
+        android:layout_alignTop="@+id/textView7"
+        android:layout_alignParentEnd="true" />
+
+    <TextView
+        android:text="マイベスト\nスポット"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="right|top"
-        android:text="Demo Button"
-        android:padding="10dp"
-        android:layout_marginTop="100dp"
-        android:paddingRight="10dp"/>
+        android:id="@+id/textView7"
+        android:layout_alignBottom="@+id/switch_marker"
+        android:layout_alignParentEnd="true" />
 
-</fragment>
+    <android.support.v7.widget.SwitchCompat
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="118dp"
+        android:id="@+id/switch_marker"
+        android:layout_alignParentTop="true"
+        android:layout_toStartOf="@+id/textView7" />
+
+    <TextView
+        android:text="危険マップ"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/textView6"
+        android:layout_alignBaseline="@+id/switch_marker"
+        android:layout_alignBottom="@+id/switch_marker"
+        android:layout_toStartOf="@+id/switch_marker" />
+
+    <ToggleButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/imageView2"
+        android:layout_alignStart="@+id/switch_marker"
+        android:id="@+id/toggle_net"
+        android:textOff="オフライン"
+        android:textOn="オンライン"
+        android:checked="true" />
+
+</RelativeLayout>
 

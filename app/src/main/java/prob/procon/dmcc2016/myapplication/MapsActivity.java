@@ -6,11 +6,9 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.BitmapDescriptor;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
-import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Tile;
 import com.google.android.gms.maps.model.TileOverlay;
 import com.google.android.gms.maps.model.TileOverlayOptions;
 import com.google.android.gms.maps.model.TileProvider;
@@ -35,8 +33,10 @@ import android.text.SpannableString;
 import android.text.style.ForegroundColorSpan;
 import android.util.Log;
 import android.view.View;
+import android.widget.CompoundButton;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.ToggleButton;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -52,6 +52,7 @@ import java.util.Locale;
 public class MapsActivity extends AppCompatActivity
         implements
         OnMapReadyCallback,
+        CompoundButton.OnCheckedChangeListener,
         LocationListener,
         GoogleMap.OnMyLocationButtonClickListener,
         ActivityCompat.OnRequestPermissionsResultCallback,
@@ -64,14 +65,12 @@ public class MapsActivity extends AppCompatActivity
         // "title" and "snippet".
         private final View mWindow;
 
-
         CustomInfoWindowAdapter() {
             mWindow = getLayoutInflater().inflate(R.layout.custom_info_window, null);
         }
 
         @Override
         public View getInfoWindow(Marker marker) {
-
             render(marker, mWindow);
             return mWindow;
         }
@@ -83,9 +82,9 @@ public class MapsActivity extends AppCompatActivity
 
 
         private void render(Marker marker, View view) {
+
             boolean flag_window = false;
             int window_num = 0;
-
             String info_Str = "";
 
             String title = marker.getTitle();
@@ -99,16 +98,21 @@ public class MapsActivity extends AppCompatActivity
                 if (Comment_List.get(window_num).returnInfo_type() == 0) info_Str = "野生生物";
                 else if (Comment_List.get(window_num).returnInfo_type() == 1) info_Str = "落石";
                 else if (Comment_List.get(window_num).returnInfo_type() == 2) info_Str = "滑落";
+                else if (Comment_List.get(window_num).returnInfo_type() == 3) info_Str = "ベストスポット";
                 TextView titleUi = ((TextView) view.findViewById(R.id.Info_type));
                 if (title != null) {
                     // Spannable string allows us to edit the formatting of the text.
                     SpannableString titleText = new SpannableString(info_Str);
-                    titleText.setSpan(new ForegroundColorSpan(Color.RED), 0, titleText.length(), 0);
+                    if(info_Str.equals("ベストスポット")){
+                        titleText.setSpan(new ForegroundColorSpan(Color.GREEN), 0, titleText.length(), 0);
+                    }
+                    else {
+                        titleText.setSpan(new ForegroundColorSpan(Color.RED), 0, titleText.length(), 0);
+                    }
                     titleUi.setText(titleText);
                 } else {
                     titleUi.setText("No Info");
                 }
-
 
                 String snippet = marker.getSnippet();
                 TextView snippetUi = ((TextView) view.findViewById(R.id.Comment_str));
@@ -154,6 +158,7 @@ public class MapsActivity extends AppCompatActivity
     private TCP_Client_Thread tcp_client;
     private final List<Marker> mMarkerRainbow = new ArrayList<Marker>();
     private final List<Marker> mMarker_AddUser = new ArrayList<Marker>();
+    private final List<Marker> mMarker_List = new ArrayList<Marker>();
     private final List<MarkerInfo> Comment_List = new ArrayList<MarkerInfo>();
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
     private boolean mPermissionDenied = false;
@@ -171,6 +176,11 @@ public class MapsActivity extends AppCompatActivity
     private SQLiteDatabase writableDB;
     private String server_ip;
     private int server_port;
+    private Add_MarkerMethod add_marker;
+    private CompoundButton switch_info;
+    private ToggleButton switch_network;
+    private boolean switch_markerInfo;
+    private boolean switch_networkInfo;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -192,7 +202,13 @@ public class MapsActivity extends AppCompatActivity
         Log.d("Initialize", "名称は:" + mount_name + "座標はx:" + location_user_x + ", y:" + location_user_y + ", zoom" + befor_zoom);
 
         mTagText = (TextView) findViewById(R.id.User_id);
-
+        add_marker = new Add_MarkerMethod();
+        switch_info = (CompoundButton) findViewById(R.id.switch_marker);
+        switch_info.setOnCheckedChangeListener(this);
+        switch_network = (ToggleButton)findViewById(R.id.toggle_net);
+        switch_network.setOnCheckedChangeListener(this);
+        switch_markerInfo = false;
+        switch_networkInfo = true;
 
         SupportMapFragment mapFragment =
                 (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
@@ -216,7 +232,7 @@ public class MapsActivity extends AppCompatActivity
         map.setMapType(GoogleMap.MAP_TYPE_NONE);
 
         // Add lots of markers to the map.
-        addMarkersToMap();
+        //addMarkersToMap();
 
         // Setting an info window adapter allows us to change the both the contents and look of the
         // info window.
@@ -227,25 +243,36 @@ public class MapsActivity extends AppCompatActivity
         mMap.setOnInfoWindowClickListener(this);
         mMap.setOnInfoWindowCloseListener(this);
 
-        TileProvider tileProvider = new UrlTileProvider(256,256) {
-            @Override
-            public synchronized URL getTileUrl(int x, int y, int zoom) {
-                // The moon tile coordinate system is reversed.  This is not normal.
-                String s = String.format(Locale.JAPAN, MAP_URL_FORMAT, zoom, x, y);
-                URL url = null;
-                try {
-                    url = new URL(s);
-                } catch (MalformedURLException e) {
-                    throw new AssertionError(e);
+        if(TCP_Client_Thread.netWorkCheck(this.getApplicationContext()) || switch_networkInfo) {
+            Log.d("dsadsa","test");
+            TileProvider tileProvider = new UrlTileProvider(256, 256) {
+                @Override
+                public synchronized URL getTileUrl(int x, int y, int zoom) {
+                    // The moon tile coordinate system is reversed.  This is not normal.
+                    String s = String.format(Locale.JAPAN, MAP_URL_FORMAT, zoom, x, y);
+                    URL url = null;
+                    if(switch_networkInfo) {
+                        try {
+                            url = new URL(s);
+                        } catch (MalformedURLException e) {
+                            throw new AssertionError(e);
+                        }
+                    }
+
+                    Log.d("getTile", "座標はx:" + x + ", y:" + y + ", zoom" + zoom);
+
+                    return url;
                 }
-                Log.d("getTile","座標はx:"+x+", y:"+y+", zoom" + zoom);
+            };
+            jMaps = map.addTileOverlay(new TileOverlayOptions().tileProvider(tileProvider));
+            map.addTileOverlay(new TileOverlayOptions().tileProvider(tileProvider));
+        }
+        else{
+            jMaps = map.addTileOverlay(new TileOverlayOptions().tileProvider(new CustomMapTileProvider(getResources().getAssets())));
+            map.addTileOverlay(new TileOverlayOptions().tileProvider(new CustomMapTileProvider(getResources().getAssets())));
+        }
 
-                return url;
-            }
-        };
 
-        jMaps = map.addTileOverlay(new TileOverlayOptions().tileProvider(tileProvider));
-        map.addTileOverlay(new TileOverlayOptions().tileProvider(tileProvider));
 
         mMap.setOnMyLocationButtonClickListener(this);
         enableMyLocation();
@@ -272,16 +299,30 @@ public class MapsActivity extends AppCompatActivity
             @Override
             public void onMapLongClick(LatLng latLng) {
 
-                Intent intent1 = new Intent(getApplicationContext(), AddLocation_Info.class);
-                intent1.putExtra("Latitude_Tap", latLng.latitude);
-                intent1.putExtra("Longitude_Tap", latLng.longitude);
-                intent1.putExtra("Latitude_User", mylocate.getLatitude());
-                intent1.putExtra("Longitude_User", mylocate.getLongitude());
-                intent1.putExtra("Higher_User", mylocate.getAltitude());
-                int requestCode = RESULT_SUBACTIVITY;
-                startActivityForResult(intent1, requestCode);
+                if(switch_markerInfo) {
+                    Intent intent1 = new Intent(getApplicationContext(), AddSpot_Info.class);
+                    intent1.putExtra("Latitude_Tap", latLng.latitude);
+                    intent1.putExtra("Longitude_Tap", latLng.longitude);
+                    intent1.putExtra("Latitude_User", mylocate.getLatitude());
+                    intent1.putExtra("Longitude_User", mylocate.getLongitude());
+                    intent1.putExtra("Higher_User", mylocate.getAltitude());
+                    int requestCode = RESULT_SUBACTIVITY;
+                    startActivityForResult(intent1, requestCode);
+                }
+                else {
+                    Intent intent1 = new Intent(getApplicationContext(), AddLocation_Info.class);
+                    intent1.putExtra("Latitude_Tap", latLng.latitude);
+                    intent1.putExtra("Longitude_Tap", latLng.longitude);
+                    intent1.putExtra("Latitude_User", mylocate.getLatitude());
+                    intent1.putExtra("Longitude_User", mylocate.getLongitude());
+                    intent1.putExtra("Higher_User", mylocate.getAltitude());
+                    int requestCode = RESULT_SUBACTIVITY;
+                    startActivityForResult(intent1, requestCode);
+                }
             }
         });
+
+        //addMarkersStartUp();
     }
 
     private void addMarkersStartUp(){
@@ -293,6 +334,7 @@ public class MapsActivity extends AppCompatActivity
         while(isEof){
             String[] str = cursor.getString(cursor.getColumnIndex(DatabaseManager.FIELD_LOCATION)).split("-");
             String date = cursor.getString(cursor.getColumnIndex(DatabaseManager.FIELD_DATE));
+            String user_db = cursor.getString(cursor.getColumnIndex(DatabaseManager.FIELD_USER_ID));
             String comment = cursor.getString(cursor.getColumnIndex(DatabaseManager.FIELD_COMMENT));
             double latitude = Double.parseDouble(str[0]);
             double longitude = Double.parseDouble(str[1]);
@@ -300,23 +342,11 @@ public class MapsActivity extends AppCompatActivity
 
             LatLng location = new LatLng(latitude, longitude);
 
-            MarkerOptions options = new MarkerOptions();
-            options.position(location);
-
-            BitmapDescriptor icon_over = BitmapDescriptorFactory.fromResource(R.drawable.pin_denger_resize);
-            if(info_type == 0) icon_over = BitmapDescriptorFactory.fromResource(R.drawable.pin_denger_animal);
-            else if(info_type == 1) icon_over = BitmapDescriptorFactory.fromResource(R.drawable.pin_denger_stonefall);
-            else if(info_type == 2) icon_over = BitmapDescriptorFactory.fromResource(R.drawable.pin_denger_srip);
-            options.icon(icon_over);
-            Marker marker = mMap.addMarker(options);
-
-            mMarker_AddUser.add(marker);
-            Comment_List.add(new MarkerInfo(date,info_type,user_id,comment,""));
+            add_marker.add_Marker_maps(location, info_type, mMap, Comment_List, mMarker_List, date, user_db, comment);
         }
     }
-
+/*
     private void addMarkersToMap() {
-
         int numMarkersInRainbow = 12;
         for (int i = 0; i < numMarkersInRainbow; i++) {
             Marker marker = mMap.addMarker(new MarkerOptions()
@@ -330,7 +360,7 @@ public class MapsActivity extends AppCompatActivity
             mMarkerRainbow.add(marker);
         }
     }
-
+*/
 
 
     @Override
@@ -395,7 +425,6 @@ public class MapsActivity extends AppCompatActivity
         // Check if a click count was set.
         //mTagText.setText(marker.getTitle() + " has been clicked ") ;
 
-
         mLastSelectedMarker = marker;
         // We return false to indicate that we have not consumed the event and that we wish
         // for the default behavior to occur (which is for the camera to move such that the
@@ -428,7 +457,6 @@ public class MapsActivity extends AppCompatActivity
             double longitude = intent.getDoubleExtra("Longitude",0.0);
             double higher = intent.getDoubleExtra("Higher", 0.0);
             String comment = intent.getStringExtra("Comment");
-
             String location_str = latitude + "-"+longitude+"-"+higher;
 
             // 現在の時刻を取得
@@ -438,23 +466,7 @@ public class MapsActivity extends AppCompatActivity
 
             LatLng location = new LatLng(latitude, longitude);
 
-
-            MarkerOptions options = new MarkerOptions();
-            options.position(location);
-            options.title(user_id+sdf.format(date));
-
-            Log.d("return:value", String.valueOf(info_type));
-            Log.d("return:comment", comment);
-
-            BitmapDescriptor icon_over = BitmapDescriptorFactory.fromResource(R.drawable.pin_denger_resize);
-            if(info_type == 0) icon_over = BitmapDescriptorFactory.fromResource(R.drawable.pin_denger_animal);
-            else if(info_type == 1) icon_over = BitmapDescriptorFactory.fromResource(R.drawable.pin_denger_stonefall);
-            else if(info_type == 2) icon_over = BitmapDescriptorFactory.fromResource(R.drawable.pin_denger_srip);
-            options.icon(icon_over);
-            Marker marker = mMap.addMarker(options);
-
-            mMarker_AddUser.add(marker);
-            Comment_List.add(new MarkerInfo(sdf.format(date),info_type,user_id,comment,""));
+            add_marker.add_Marker_user(location, info_type, mMap, Comment_List, mMarker_AddUser, mMarker_List,sdf.format(date), user_id, comment);
 
             ContentValues values = new ContentValues();
             values.put(DatabaseManager.FIELD_MOUNT_NAME, mount_name_db);
@@ -475,4 +487,51 @@ public class MapsActivity extends AppCompatActivity
         }
     }
 
+    @Override
+    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked){
+        if(buttonView.getId() == R.id.switch_marker) {
+            Log.d("switch", "switch has been changed");
+            if (isChecked) {
+                Log.d("switch", "switch is true");
+                for (Marker marker : mMarker_List) {
+                    Log.d("switch", "in loop");
+                    int marker_num = 0;
+                    for (int i = 0; i < Comment_List.size(); i++) {
+                        if ((Comment_List.get(i).returnUser_id() + Comment_List.get(i).returnDate()).equals(marker.getTitle())) {
+                            marker_num = i;
+                        }
+                    }
+                    Log.d("switch", "true marker_num:" + marker_num);
+                    if (Comment_List.get(marker_num).returnInfo_type() == 3) {
+                        marker.setVisible(true);
+                    } else {
+                        marker.setVisible(false);
+                    }
+                }
+                switch_markerInfo = true;
+            } else {
+                for (Marker marker : mMarker_List) {
+                    Log.d("switch", "switch is false");
+                    Log.d("switch", "in loop");
+                    int marker_num = 0;
+                    for (int i = 0; i < Comment_List.size(); i++) {
+                        if ((Comment_List.get(i).returnUser_id() + Comment_List.get(i).returnDate()).equals(marker.getTitle())) {
+                            marker_num = i;
+                        }
+                    }
+                    Log.d("switch", "false marker_num:" + marker_num);
+                    if (Comment_List.get(marker_num).returnInfo_type() == 3) {
+                        marker.setVisible(false);
+                    } else {
+                        marker.setVisible(true);
+                    }
+                }
+                switch_markerInfo = false;
+            }
+        } else if(buttonView.getId() == R.id.toggle_net){
+            Log.d("network", "changed");
+            if(isChecked)   switch_networkInfo = true;
+            else switch_networkInfo = false;
+        }
+    }
 }

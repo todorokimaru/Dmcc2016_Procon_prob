@@ -22,29 +22,22 @@ public class AddLocation_Info extends AppCompatActivity {
 
     private String[] mStr_Info_Type = {"野生生物", "落石","滑落"};
     private String[] mStr_Location = {"タップした位置", "現在地"};
-
     private double latitude_tap;
     private double longitude_tap;
     private double latitude_user;
     private double longitude_user;
     private double higher_user;
-
     private double select_latitude;
     private double select_longitude;
     private double select_higher;
     private int Info_type;
     private String date_str;
-
     private Spinner InfoSpinner;
     private Spinner LocSpinner;
 
-
     private Camera mCam = null;
-
     private CameraPreview mCamPreview = null;
-
     private Date info_date;
-
     Button add_button;
     Button camera_button;
 
