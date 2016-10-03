@@ -15,12 +15,14 @@ import com.google.android.gms.maps.model.TileProvider;
 import com.google.android.gms.maps.model.UrlTileProvider;
 
 import android.Manifest;
+import android.app.Dialog;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.location.Location;
 import android.location.LocationManager;
@@ -33,7 +35,9 @@ import android.text.SpannableString;
 import android.text.style.ForegroundColorSpan;
 import android.util.Log;
 import android.view.View;
+import android.view.Window;
 import android.widget.CompoundButton;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
@@ -157,6 +161,7 @@ public class MapsActivity extends AppCompatActivity
     private MakerHelper mDBHelper;
     private TCP_Client_Thread tcp_client;
     private final List<Marker> mMarkerRainbow = new ArrayList<Marker>();
+    private final List<ImageInfo> mBitmap_List = new ArrayList<ImageInfo>();
     private final List<Marker> mMarker_AddUser = new ArrayList<Marker>();
     private final List<Marker> mMarker_List = new ArrayList<Marker>();
     private final List<MarkerInfo> Comment_List = new ArrayList<MarkerInfo>();
@@ -165,6 +170,7 @@ public class MapsActivity extends AppCompatActivity
     private GoogleMap mMap;
 
     static final int RESULT_SUBACTIVITY = 1000;
+    static final int RESULT_ADDSPOT = 2000;
 
     private double location_user_x;
     private double location_user_y;
@@ -307,7 +313,7 @@ public class MapsActivity extends AppCompatActivity
                     intent1.putExtra("Longitude_User", mylocate.getLongitude());
                     intent1.putExtra("Higher_User", mylocate.getAltitude());
                     intent1.putExtra("Mount_name", mount_name);
-                    int requestCode = RESULT_SUBACTIVITY;
+                    int requestCode = RESULT_ADDSPOT;
                     startActivityForResult(intent1, requestCode);
                 }
                 else {
@@ -437,6 +443,24 @@ public class MapsActivity extends AppCompatActivity
     @Override
     public void onInfoWindowClick(Marker marker) {
         Toast.makeText(this, "Click Info Window", Toast.LENGTH_SHORT).show();
+        int image_num = 0;
+        boolean image_flag =false;
+        for(int i = 0; i < mBitmap_List.size() ; i++){
+            if((mBitmap_List.get(i).returnUserId()+mBitmap_List.get(i).returnName()).equals(marker.getTitle())){
+                image_num = i;
+                image_flag = true;
+            }
+        }
+        if(image_flag) {
+            ImageView iv = new ImageView(this);
+            iv.setImageBitmap(mBitmap_List.get(image_num).returnBmp());
+            iv.setScaleType(ImageView.ScaleType.FIT_XY);
+            iv.setAdjustViewBounds(true);
+            Dialog dialog = new Dialog(this);
+            dialog.getWindow().requestFeature(Window.FEATURE_NO_TITLE);
+            dialog.setContentView(iv);
+            dialog.show();
+        }
     }
 
     @Override
@@ -468,6 +492,42 @@ public class MapsActivity extends AppCompatActivity
             LatLng location = new LatLng(latitude, longitude);
 
             add_marker.add_Marker_user(location, info_type, mMap, Comment_List, mMarker_AddUser, mMarker_List,sdf.format(date), user_id, comment);
+
+            ContentValues values = new ContentValues();
+            values.put(DatabaseManager.FIELD_MOUNT_NAME, mount_name_db);
+            values.put(DatabaseManager.FIELD_LOCATION, location_str);
+            values.put(DatabaseManager.FIELD_DATE, sdf.format(date));
+            values.put(DatabaseManager.FIELD_INFO_TYPE, info_type);
+            values.put(DatabaseManager.FIELD_USER_ID, user_id);
+            values.put(DatabaseManager.FIELD_COMMENT, comment);
+            values.put(DatabaseManager.FIELD_GRAPH, "");
+            writableDB.insert(DatabaseManager.TABLE_NAME, null, values);
+
+            if(tcp_client.connectTh(server_ip, server_port)){
+                String data_str = mount_name_db +","+location_str+","+sdf.format(date)+","+info_type+","+user_id+","+comment+","+"";
+                byte[] data = data_str.getBytes();
+                tcp_client.sendTh(data);
+                tcp_client.close();
+            }
+        }
+        else if(resultCode == RESULT_OK && requestCode == RESULT_ADDSPOT && null != intent) {
+            int info_type = intent.getIntExtra("Info_Type", 0);
+            double latitude = intent.getDoubleExtra("Latitude",0.0);
+            double longitude = intent.getDoubleExtra("Longitude",0.0);
+            double higher = intent.getDoubleExtra("Higher", 0.0);
+            String comment = intent.getStringExtra("Comment");
+            Bitmap bmp = (Bitmap)intent.getParcelableExtra("Image");
+            String location_str = latitude + "-"+longitude+"-"+higher;
+
+            // 現在の時刻を取得
+            Date date = new Date();
+            // 表示形式を設定
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd-kkmmss");
+
+            LatLng location = new LatLng(latitude, longitude);
+
+            add_marker.add_Marker_user(location, info_type, mMap, Comment_List, mMarker_AddUser, mMarker_List,sdf.format(date), user_id, comment);
+            mBitmap_List.add(new ImageInfo(sdf.format(date), user_id,bmp));
 
             ContentValues values = new ContentValues();
             values.put(DatabaseManager.FIELD_MOUNT_NAME, mount_name_db);

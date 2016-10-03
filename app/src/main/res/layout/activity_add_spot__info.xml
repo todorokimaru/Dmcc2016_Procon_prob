@@ -15,7 +15,7 @@
         android:layout_width="150dp"
         android:layout_height="200dp"
         app:srcCompat="@color/cast_expanded_controller_background_color"
-        android:id="@+id/imageView3"
+        android:id="@+id/spot_image"
         android:layout_alignParentTop="true"
         android:layout_alignParentEnd="true" />
 
@@ -23,7 +23,7 @@
         android:text="写真を撮る"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/imageView3"
+        android:layout_below="@+id/spot_image"
         android:layout_alignParentEnd="true"
         android:layout_marginEnd="25dp"
         android:id="@+id/picture_button_spot" />
@@ -43,9 +43,9 @@
         android:ems="10"
         android:id="@+id/editText_comment_spot"
         android:hint="ここをタップして入力してください。"
-        android:layout_below="@+id/imageView3"
+        android:layout_below="@+id/spot_image"
         android:layout_alignParentStart="true"
-        android:layout_toStartOf="@+id/imageView3" />
+        android:layout_toStartOf="@+id/spot_image" />
 
     <TextView
         android:text="コメントを入力してください。"

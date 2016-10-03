@@ -1,6 +1,8 @@
 package prob.procon.dmcc2016.myapplication;
 
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.hardware.Camera;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -12,10 +14,12 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -40,6 +44,9 @@ public class AddSpot_Info extends AppCompatActivity {
     private CameraPreview mCamPreview = null;
     private Date info_date;
     private String mount_name;
+    private int REQUEST_GALLERY = 1000;
+    private ImageView imgView;
+    private Bitmap bmp;
 
     Button add_button;
     Button camera_button;
@@ -65,6 +72,8 @@ public class AddSpot_Info extends AppCompatActivity {
         longitude_user = intent.getDoubleExtra("Longitude_User", 0.0);
         higher_user = intent.getDoubleExtra("Higher_User", 0.0);
         mount_name = intent.getStringExtra("Mount_name");
+
+        imgView = (ImageView)findViewById(R.id.spot_image);
 
         LocSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener(){
 
@@ -109,6 +118,7 @@ public class AddSpot_Info extends AppCompatActivity {
                 intent.putExtra("Longitude", select_longitude);
                 intent.putExtra("Higher", select_higher);
                 intent.putExtra("Comment", sp.toString());
+                intent.putExtra("Image", bmp);
                 setResult(RESULT_OK, intent);
                 finish();
             }
@@ -123,13 +133,10 @@ public class AddSpot_Info extends AppCompatActivity {
             @Override
             public void onClick(View v) {
 
-                SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd-kkmmss");
-                date_str = sdf.format(info_date);
-
-                Intent intent = new Intent(getApplication(), SimpleCameraActivity.class);
-                intent.putExtra("date", date_str);
-
-                startActivity(intent);
+                Intent intent = new Intent();
+                intent.setAction(Intent.ACTION_GET_CONTENT);
+                intent.setType("image/*");
+                startActivityForResult(intent, REQUEST_GALLERY);
             }
         });
 
@@ -167,6 +174,21 @@ public class AddSpot_Info extends AppCompatActivity {
             tv.setText("認証済み");
         } else{
             tv.setText("未認証");
+        }
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode == RESULT_OK && requestCode == REQUEST_GALLERY) {
+            try {
+                InputStream is = getContentResolver().openInputStream(data.getData());
+                bmp = BitmapFactory.decodeStream(is);
+                is.close();
+                imgView.setImageBitmap(bmp);
+            } catch (Exception e) {
+
+            }
         }
     }
 
