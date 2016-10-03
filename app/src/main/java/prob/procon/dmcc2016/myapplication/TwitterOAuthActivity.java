@@ -5,6 +5,8 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
+import android.view.View;
 import android.widget.Toast;
 
 import twitter4j.Twitter;
@@ -27,6 +29,8 @@ public class TwitterOAuthActivity extends AppCompatActivity {
 
         mCallbackURL = getString(R.string.twitter_callback_url);
         mTwitter = Twitter_Util.getTwitterInstance(this);
+
+        startAuthorize();
     }
 
     /**
@@ -38,10 +42,12 @@ public class TwitterOAuthActivity extends AppCompatActivity {
             @Override
             protected String doInBackground(Void... params) {
                 try {
+                    Log.d("OAuth","アクセス");
                     mRequestToken = mTwitter.getOAuthRequestToken(mCallbackURL);
                     return mRequestToken.getAuthorizationURL();
                 } catch (TwitterException e) {
                     e.printStackTrace();
+                    Log.d("OAuth","できませんでした…");
                 }
                 return null;
             }
@@ -53,6 +59,7 @@ public class TwitterOAuthActivity extends AppCompatActivity {
                     startActivity(intent);
                 } else {
                     // 失敗。。。
+                    Log.d("OAuth","やっぱりそ…ダメみたいですね…");
                 }
             }
         };

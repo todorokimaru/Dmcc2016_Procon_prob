@@ -65,16 +65,17 @@
             android:name=".TwitterOAuthActivity"
             android:launchMode="singleTask">
             <intent-filter>
-                <action android:name="android.intent.action.VIEW"></action>
+                <action android:name="android.intent.action.VIEW" />
 
-                <category android:name="android.intent.category.DEFAULT"></category>
-                <category android:name="android.intent.category.BROWSABLE"></category>
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
 
                 <data
                     android:host="twitter"
-                    android:scheme="dmcc2016"></data>
+                    android:scheme="dmcc2016" />
             </intent-filter>
         </activity>
+        <activity android:name=".Tweet_Activity"></activity>
     </application>
 
 </manifest>

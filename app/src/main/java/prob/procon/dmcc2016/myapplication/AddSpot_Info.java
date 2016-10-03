@@ -2,6 +2,7 @@ package prob.procon.dmcc2016.myapplication;
 
 import android.content.Intent;
 import android.hardware.Camera;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.SpannableStringBuilder;
@@ -12,9 +13,13 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+
+import static prob.procon.dmcc2016.myapplication.MapsActivity.RESULT_SUBACTIVITY;
 
 public class AddSpot_Info extends AppCompatActivity {
 
@@ -34,10 +39,12 @@ public class AddSpot_Info extends AppCompatActivity {
     private Camera mCam = null;
     private CameraPreview mCamPreview = null;
     private Date info_date;
+    private String mount_name;
 
     Button add_button;
     Button camera_button;
     Button twitter_OAuth_button;
+    Button twitter_tweet_button;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,7 +64,7 @@ public class AddSpot_Info extends AppCompatActivity {
         latitude_user = intent.getDoubleExtra("Latitude_User", 0.0);
         longitude_user = intent.getDoubleExtra("Longitude_User", 0.0);
         higher_user = intent.getDoubleExtra("Higher_User", 0.0);
-
+        mount_name = intent.getStringExtra("Mount_name");
 
         LocSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener(){
 
@@ -138,5 +145,30 @@ public class AddSpot_Info extends AppCompatActivity {
                 startActivity(intent);
             }
         });
+
+        twitter_tweet_button = (Button)findViewById(R.id.twitter_button);
+        twitter_tweet_button.setOnClickListener(new View.OnClickListener(){
+
+            @Override
+            public void onClick(View v) {
+                Log.d("Twitter", "Call Tweet Activity");
+                if(Twitter_Util.hasAccessToken(getApplicationContext())) {
+                    Intent intent = new Intent(getApplication(), Tweet_Activity.class);
+                    intent.putExtra("Mount_name" , mount_name);
+                    startActivity(intent);
+                } else{
+                    showToast("OAuth認証がされていません！");
+                }
+            }
+        });
+
+        TextView tv = (TextView)findViewById(R.id.OAuth_permisson_text);
+        if(Twitter_Util.hasAccessToken(this)) {
+            tv.setText("認証済み");
+        } else{
+            tv.setText("未認証");
+        }
     }
+
+    private void showToast(String text){ Toast.makeText(this, text, Toast.LENGTH_SHORT).show(); }
 }

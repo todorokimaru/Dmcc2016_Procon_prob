@@ -306,6 +306,7 @@ public class MapsActivity extends AppCompatActivity
                     intent1.putExtra("Latitude_User", mylocate.getLatitude());
                     intent1.putExtra("Longitude_User", mylocate.getLongitude());
                     intent1.putExtra("Higher_User", mylocate.getAltitude());
+                    intent1.putExtra("Mount_name", mount_name);
                     int requestCode = RESULT_SUBACTIVITY;
                     startActivityForResult(intent1, requestCode);
                 }

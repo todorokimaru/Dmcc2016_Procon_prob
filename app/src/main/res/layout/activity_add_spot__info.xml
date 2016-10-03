@@ -89,4 +89,12 @@
         android:id="@+id/twitter_oauth_button"
         android:layout_above="@+id/twitter_button"
         android:layout_alignParentEnd="true" />
+
+    <TextView
+        android:text="TextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerVertical="true"
+        android:layout_toStartOf="@+id/twitter_oauth_button"
+        android:id="@+id/OAuth_permisson_text" />
 </RelativeLayout>
