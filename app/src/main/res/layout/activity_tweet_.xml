@@ -50,4 +50,13 @@
         android:layout_alignBaseline="@+id/tweet_push"
         android:layout_alignBottom="@+id/tweet_push"
         android:layout_toStartOf="@+id/tweet_push" />
+
+    <CheckBox
+        android:text="画像の添付"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/tweet_text"
+        android:layout_toEndOf="@+id/textView10"
+        android:id="@+id/image_add_check"
+        android:textSize="18sp" />
 </RelativeLayout>

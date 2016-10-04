@@ -10,8 +10,8 @@ import android.widget.ImageView;
 public class ImageInfo {
     private String image_name;
     private String user_id;
-    private Bitmap bmp;
-    ImageInfo(String image_name, String user_id ,Bitmap bmp){
+    private String bmp;
+    ImageInfo(String image_name, String user_id ,String bmp){
         this.image_name = image_name;
         this.user_id = user_id;
         this.bmp = bmp;
@@ -22,7 +22,7 @@ public class ImageInfo {
     public String returnUserId(){
         return user_id;
     }
-    public Bitmap returnBmp(){
+    public String returnBmp(){
         return bmp;
     }
 }

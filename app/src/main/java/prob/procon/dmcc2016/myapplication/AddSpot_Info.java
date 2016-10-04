@@ -19,6 +19,9 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -40,13 +43,15 @@ public class AddSpot_Info extends AppCompatActivity {
     private int Info_type = 3;
     private String date_str;
     private Spinner LocSpinner;
-    private Camera mCam = null;
-    private CameraPreview mCamPreview = null;
     private Date info_date;
     private String mount_name;
     private int REQUEST_GALLERY = 1000;
     private ImageView imgView;
     private Bitmap bmp;
+    private String user_id;
+    private File imageFile;
+    private String imageName;
+    private boolean image_flag = false;
 
     Button add_button;
     Button camera_button;
@@ -59,6 +64,10 @@ public class AddSpot_Info extends AppCompatActivity {
         setContentView(R.layout.activity_add_spot__info);
 
         info_date = new Date();
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd-kkmmss");
+        date_str = sdf.format(info_date);
+        imageName = user_id+sdf.format(info_date)+".png";
+
         LocSpinner = (Spinner)findViewById(R.id.spot_spinner);
 
         ArrayAdapter<String> adapter_loc
@@ -71,6 +80,7 @@ public class AddSpot_Info extends AppCompatActivity {
         latitude_user = intent.getDoubleExtra("Latitude_User", 0.0);
         longitude_user = intent.getDoubleExtra("Longitude_User", 0.0);
         higher_user = intent.getDoubleExtra("Higher_User", 0.0);
+        user_id = intent.getStringExtra("User_id");
         mount_name = intent.getStringExtra("Mount_name");
 
         imgView = (ImageView)findViewById(R.id.spot_image);
@@ -110,15 +120,16 @@ public class AddSpot_Info extends AppCompatActivity {
                 Log.d("Info_type", String.valueOf(Info_type));
                 Log.d("Comment", sp.toString());
 
-                SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd-kkmmss");
-
                 Intent intent = new Intent();
                 intent.putExtra("Info_Type", Info_type);
                 intent.putExtra("Latitude", select_latitude);
                 intent.putExtra("Longitude", select_longitude);
                 intent.putExtra("Higher", select_higher);
                 intent.putExtra("Comment", sp.toString());
-                intent.putExtra("Image", bmp);
+                if(image_flag)
+                    intent.putExtra("Image", imageFile.getAbsolutePath());
+                intent.putExtra("Img_flag", image_flag);
+                intent.putExtra("Date", date_str);
                 setResult(RESULT_OK, intent);
                 finish();
             }
@@ -162,6 +173,9 @@ public class AddSpot_Info extends AppCompatActivity {
                 if(Twitter_Util.hasAccessToken(getApplicationContext())) {
                     Intent intent = new Intent(getApplication(), Tweet_Activity.class);
                     intent.putExtra("Mount_name" , mount_name);
+                    intent.putExtra("Image_flag" , image_flag);
+                    if(image_flag)
+                        intent.putExtra("Image_path", imageFile.getAbsolutePath());
                     startActivity(intent);
                 } else{
                     showToast("OAuth認証がされていません！");
@@ -186,6 +200,15 @@ public class AddSpot_Info extends AppCompatActivity {
                 bmp = BitmapFactory.decodeStream(is);
                 is.close();
                 imgView.setImageBitmap(bmp);
+                imageFile = new File(getFilesDir(), imageName);
+                FileOutputStream out;
+                try{
+                    out = new FileOutputStream(imageFile);
+                    bmp.compress(Bitmap.CompressFormat.PNG, 0 , out);
+                    image_flag = true;
+                }catch (FileNotFoundException e){
+                    e.printStackTrace();
+                }
             } catch (Exception e) {
 
             }

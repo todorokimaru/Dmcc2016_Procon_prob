@@ -1,6 +1,8 @@
 package prob.procon.dmcc2016.myapplication;
 
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.hardware.Camera;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -11,8 +13,13 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.Spinner;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -33,10 +40,14 @@ public class AddLocation_Info extends AppCompatActivity {
     private int Info_type;
     private String date_str;
     private Spinner InfoSpinner;
+    private int REQUEST_GALLERY = 1000;
     private Spinner LocSpinner;
+    private String user_id;
+    private Bitmap bmp;
+    private ImageView imgView;
+    private File imageFile;
+    private String imageName;
 
-    private Camera mCam = null;
-    private CameraPreview mCamPreview = null;
     private Date info_date;
     Button add_button;
     Button camera_button;
@@ -47,6 +58,11 @@ public class AddLocation_Info extends AppCompatActivity {
         setContentView(R.layout.activity_add_location__info);
 
         info_date = new Date();
+
+        imgView = (ImageView)findViewById(R.id.imageView_location) ;
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd-kkmmss");
+        date_str = sdf.format(info_date);
+
 
         InfoSpinner = (Spinner)findViewById(R.id.info_type_spinner);
         LocSpinner = (Spinner)findViewById(R.id.location_spinner);
@@ -65,6 +81,9 @@ public class AddLocation_Info extends AppCompatActivity {
         latitude_user = intent.getDoubleExtra("Latitude_User", 0.0);
         longitude_user = intent.getDoubleExtra("Longitude_User", 0.0);
         higher_user = intent.getDoubleExtra("Higher_User", 0.0);
+        user_id = intent.getStringExtra("User_id");
+
+        imageName = user_id+sdf.format(info_date)+".png";
 
         InfoSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener(){
             @Override
@@ -122,7 +141,7 @@ public class AddLocation_Info extends AppCompatActivity {
                 Log.d("Info_type", String.valueOf(Info_type));
                 Log.d("Comment", sp.toString());
 
-                SimpleDateFormat sdf = new SimpleDateFormat("yyyy'年'MM'月'dd'日'-kk'時'mm'分'ss'秒'");
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd-kkmmss");
 
                 Intent intent = new Intent();
                 intent.putExtra("Info_Type", Info_type);
@@ -130,6 +149,9 @@ public class AddLocation_Info extends AppCompatActivity {
                 intent.putExtra("Longitude", select_longitude);
                 intent.putExtra("Higher", select_higher);
                 intent.putExtra("Comment", sp.toString());
+                if(imageFile.exists())
+                    intent.putExtra("Image", imageFile.getAbsolutePath());
+                intent.putExtra("Date", date_str);
                 setResult(RESULT_OK, intent);
                 finish();
             }
@@ -144,16 +166,35 @@ public class AddLocation_Info extends AppCompatActivity {
             @Override
             public void onClick(View v) {
 
-                SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd-kkmmss");
-
-                date_str = sdf.format(info_date);
-
-                Intent intent = new Intent(getApplication(), SimpleCameraActivity.class);
-                intent.putExtra("date", date_str);
-
-                startActivity(intent);
+                Intent intent = new Intent();
+                intent.setAction(Intent.ACTION_GET_CONTENT);
+                intent.setType("image/*");
+                startActivityForResult(intent, REQUEST_GALLERY);
             }
         });
 
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode == RESULT_OK && requestCode == REQUEST_GALLERY) {
+            try {
+                InputStream is = getContentResolver().openInputStream(data.getData());
+                bmp = BitmapFactory.decodeStream(is);
+                is.close();
+                imgView.setImageBitmap(bmp);
+                imageFile = new File(getFilesDir(), imageName);
+                FileOutputStream out;
+                try{
+                    out = new FileOutputStream(imageFile);
+                    bmp.compress(Bitmap.CompressFormat.PNG, 0 , out);
+                }catch (FileNotFoundException e){
+                    e.printStackTrace();
+                }
+            } catch (Exception e) {
+
+            }
+        }
     }
 }

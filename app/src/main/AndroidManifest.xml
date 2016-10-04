@@ -59,7 +59,6 @@
         <activity
             android:name=".AddLocation_Info"
             android:label="AddMarker" />
-        <activity android:name=".SimpleCameraActivity" />
         <activity android:name=".AddSpot_Info" />
         <activity
             android:name=".TwitterOAuthActivity"

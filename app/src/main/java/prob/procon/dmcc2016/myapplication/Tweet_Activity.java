@@ -2,16 +2,21 @@ package prob.procon.dmcc2016.myapplication;
 
 import android.content.Intent;
 import android.graphics.Color;
+import android.graphics.Path;
 import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.View;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.File;
+
+import twitter4j.StatusUpdate;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
 
@@ -21,6 +26,11 @@ public class Tweet_Activity extends AppCompatActivity {
     private TextView mTextLength;
     private Twitter mTwitter;
     private String mount_name;
+    private String image_path;
+    private boolean image_flag;
+    private boolean check_flag = false;
+    private CheckBox checkBox;
+    private File file;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,7 +39,13 @@ public class Tweet_Activity extends AppCompatActivity {
 
         Intent intent = getIntent();
         mount_name = intent.getStringExtra("Mount_name");
+        image_flag = intent.getBooleanExtra("Image_flag", false);
+        if(image_flag) {
+            image_path = intent.getStringExtra("Image_path");
+            file = new File(image_path);
+        }
 
+        checkBox = (CheckBox)findViewById(R.id.image_add_check);
         mTwitter = Twitter_Util.getTwitterInstance(this);
         mInputText = (EditText) findViewById(R.id.tweet_text);
         mTextLength = (TextView)findViewById(R.id.text_length);
@@ -39,10 +55,23 @@ public class Tweet_Activity extends AppCompatActivity {
         findViewById(R.id.tweet_push).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                tweet();
+                if(image_flag && check_flag) tweet(file);
+                else tweet(null);
                 Intent intent = new Intent();
                 setResult(RESULT_OK, intent);
                 finish();
+            }
+        });
+
+        checkBox.setOnClickListener(new View.OnClickListener() {
+            @Override
+            // チェックボックスがクリックされた時に呼び出されます
+            public void onClick(View v) {
+                CheckBox checkBox = (CheckBox) v;
+                
+                // チェックボックスのチェック状態を取得します
+                boolean checked = checkBox.isChecked();
+                image_flag = checked;
             }
         });
 
@@ -74,12 +103,12 @@ public class Tweet_Activity extends AppCompatActivity {
         });
     }
 
-    private void tweet() {
+    private void tweet(final File file) {
         AsyncTask<String, Void, Boolean> task = new AsyncTask<String, Void, Boolean>() {
             @Override
             protected Boolean doInBackground(String... params) {
                 try {
-                    mTwitter.updateStatus(params[0]);
+                    mTwitter.updateStatus(new StatusUpdate(params[0]).media(file));
                     return true;
                 } catch (TwitterException e) {
                     e.printStackTrace();

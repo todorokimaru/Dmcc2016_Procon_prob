@@ -23,6 +23,7 @@ import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.location.Location;
 import android.location.LocationManager;
@@ -42,6 +43,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.SimpleDateFormat;
@@ -313,6 +317,7 @@ public class MapsActivity extends AppCompatActivity
                     intent1.putExtra("Longitude_User", mylocate.getLongitude());
                     intent1.putExtra("Higher_User", mylocate.getAltitude());
                     intent1.putExtra("Mount_name", mount_name);
+                    intent1.putExtra("User_id", user_id);
                     int requestCode = RESULT_ADDSPOT;
                     startActivityForResult(intent1, requestCode);
                 }
@@ -453,7 +458,15 @@ public class MapsActivity extends AppCompatActivity
         }
         if(image_flag) {
             ImageView iv = new ImageView(this);
-            iv.setImageBitmap(mBitmap_List.get(image_num).returnBmp());
+            File srcFile = new File(mBitmap_List.get(image_num).returnBmp());
+            FileInputStream fis = null;
+            try {
+                fis = new FileInputStream(srcFile);
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
+            Bitmap bm = BitmapFactory.decodeStream(fis);
+            iv.setImageBitmap(bm);
             iv.setScaleType(ImageView.ScaleType.FIT_XY);
             iv.setAdjustViewBounds(true);
             Dialog dialog = new Dialog(this);
@@ -482,29 +495,29 @@ public class MapsActivity extends AppCompatActivity
             double longitude = intent.getDoubleExtra("Longitude",0.0);
             double higher = intent.getDoubleExtra("Higher", 0.0);
             String comment = intent.getStringExtra("Comment");
+            String bmp_path = "";
+            if(!intent.getStringExtra("Image").isEmpty())
+                bmp_path = intent.getStringExtra("Image");
+            String date = intent.getStringExtra("Date");
             String location_str = latitude + "-"+longitude+"-"+higher;
-
-            // 現在の時刻を取得
-            Date date = new Date();
-            // 表示形式を設定
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd-kkmmss");
 
             LatLng location = new LatLng(latitude, longitude);
 
-            add_marker.add_Marker_user(location, info_type, mMap, Comment_List, mMarker_AddUser, mMarker_List,sdf.format(date), user_id, comment);
+            add_marker.add_Marker_user(location, info_type, mMap, Comment_List, mMarker_AddUser, mMarker_List,date, user_id, comment);
 
             ContentValues values = new ContentValues();
             values.put(DatabaseManager.FIELD_MOUNT_NAME, mount_name_db);
             values.put(DatabaseManager.FIELD_LOCATION, location_str);
-            values.put(DatabaseManager.FIELD_DATE, sdf.format(date));
+            values.put(DatabaseManager.FIELD_DATE, date);
             values.put(DatabaseManager.FIELD_INFO_TYPE, info_type);
             values.put(DatabaseManager.FIELD_USER_ID, user_id);
             values.put(DatabaseManager.FIELD_COMMENT, comment);
-            values.put(DatabaseManager.FIELD_GRAPH, "");
+            values.put(DatabaseManager.FIELD_GRAPH, bmp_path);
             writableDB.insert(DatabaseManager.TABLE_NAME, null, values);
+            mBitmap_List.add(new ImageInfo(date, user_id,bmp_path));
 
             if(tcp_client.connectTh(server_ip, server_port)){
-                String data_str = mount_name_db +","+location_str+","+sdf.format(date)+","+info_type+","+user_id+","+comment+","+"";
+                String data_str = mount_name_db +","+location_str+","+date+","+info_type+","+user_id+","+comment+","+"";
                 byte[] data = data_str.getBytes();
                 tcp_client.sendTh(data);
                 tcp_client.close();
@@ -516,31 +529,30 @@ public class MapsActivity extends AppCompatActivity
             double longitude = intent.getDoubleExtra("Longitude",0.0);
             double higher = intent.getDoubleExtra("Higher", 0.0);
             String comment = intent.getStringExtra("Comment");
-            Bitmap bmp = (Bitmap)intent.getParcelableExtra("Image");
+            boolean img_flag = intent.getBooleanExtra("Img_flag", false);
+            String bmp_path = "";
+            if(img_flag)
+                bmp_path = intent.getStringExtra("Image");
+            String date = intent.getStringExtra("Date");
             String location_str = latitude + "-"+longitude+"-"+higher;
-
-            // 現在の時刻を取得
-            Date date = new Date();
-            // 表示形式を設定
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd-kkmmss");
 
             LatLng location = new LatLng(latitude, longitude);
 
-            add_marker.add_Marker_user(location, info_type, mMap, Comment_List, mMarker_AddUser, mMarker_List,sdf.format(date), user_id, comment);
-            mBitmap_List.add(new ImageInfo(sdf.format(date), user_id,bmp));
+            add_marker.add_Marker_user(location, info_type, mMap, Comment_List, mMarker_AddUser, mMarker_List, date, user_id, comment);
+            mBitmap_List.add(new ImageInfo(date, user_id,bmp_path));
 
             ContentValues values = new ContentValues();
             values.put(DatabaseManager.FIELD_MOUNT_NAME, mount_name_db);
             values.put(DatabaseManager.FIELD_LOCATION, location_str);
-            values.put(DatabaseManager.FIELD_DATE, sdf.format(date));
+            values.put(DatabaseManager.FIELD_DATE, date);
             values.put(DatabaseManager.FIELD_INFO_TYPE, info_type);
             values.put(DatabaseManager.FIELD_USER_ID, user_id);
             values.put(DatabaseManager.FIELD_COMMENT, comment);
-            values.put(DatabaseManager.FIELD_GRAPH, "");
+            values.put(DatabaseManager.FIELD_GRAPH, bmp_path);
             writableDB.insert(DatabaseManager.TABLE_NAME, null, values);
 
             if(tcp_client.connectTh(server_ip, server_port)){
-                String data_str = mount_name_db +","+location_str+","+sdf.format(date)+","+info_type+","+user_id+","+comment+","+"";
+                String data_str = mount_name_db +","+location_str+","+date+","+info_type+","+user_id+","+comment+","+"";
                 byte[] data = data_str.getBytes();
                 tcp_client.sendTh(data);
                 tcp_client.close();
