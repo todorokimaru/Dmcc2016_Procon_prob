@@ -8,6 +8,7 @@
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
+    android:background="#fef3b3"
     tools:context="prob.procon.dmcc2016.myapplication.Tweet_Activity">
 
     <TextView
@@ -33,12 +34,22 @@
         android:singleLine="false" />
 
     <Button
-        android:text="Button"
+        android:text="つぶやく"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/tweet_push"
         android:layout_below="@+id/tweet_text"
-        android:layout_alignParentEnd="true" />
+        android:layout_alignParentEnd="true"
+        android:background="#33A6B8"/>
+
+    <CheckBox
+        android:text="画像の添付"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/tweet_text"
+        android:layout_toEndOf="@+id/textView10"
+        android:id="@+id/image_add_check"
+        android:textSize="18sp" />
 
     <TextView
         android:text="140"
@@ -49,14 +60,5 @@
         android:textSize="24sp"
         android:layout_alignBaseline="@+id/tweet_push"
         android:layout_alignBottom="@+id/tweet_push"
-        android:layout_toStartOf="@+id/tweet_push" />
-
-    <CheckBox
-        android:text="画像の添付"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_above="@+id/tweet_text"
-        android:layout_toEndOf="@+id/textView10"
-        android:id="@+id/image_add_check"
-        android:textSize="18sp" />
+        android:layout_toEndOf="@+id/image_add_check" />
 </RelativeLayout>

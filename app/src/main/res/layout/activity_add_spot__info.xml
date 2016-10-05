@@ -9,6 +9,7 @@
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
+    android:background="#fef3b3"
     tools:context="prob.procon.dmcc2016.myapplication.AddSpot_Info">
 
     <ImageView
@@ -20,21 +21,24 @@
         android:layout_alignParentEnd="true" />
 
     <Button
-        android:text="写真を撮る"
+        android:text="写真を選ぶ"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@+id/spot_image"
         android:layout_alignParentEnd="true"
         android:layout_marginEnd="25dp"
+        android:background="#ccb428"
         android:id="@+id/picture_button_spot" />
 
     <Button
-        android:text="追加する"
+        android:text="スポットを追加する"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/marker_add_spot"
         android:layout_centerVertical="true"
-        android:layout_alignParentStart="true" />
+        android:layout_alignParentStart="true"
+        android:background="#ccb428"
+        android:layout_alignParentEnd="true" />
 
     <EditText
         android:layout_width="wrap_content"
@@ -79,22 +83,16 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/twitter_button"
-        android:layout_below="@+id/marker_add_spot"
-        android:layout_alignParentEnd="true" />
-
-    <Button
-        android:text="ツイッター認証"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/twitter_oauth_button"
-        android:layout_above="@+id/twitter_button"
+        android:background="#33A6B8"
+        android:layout_below="@+id/editText_comment_spot"
         android:layout_alignParentEnd="true" />
 
     <TextView
         android:text="TextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_centerVertical="true"
-        android:layout_toStartOf="@+id/twitter_oauth_button"
-        android:id="@+id/OAuth_permisson_text" />
+        android:id="@+id/OAuth_permisson_text"
+        android:layout_alignBaseline="@+id/twitter_button"
+        android:layout_alignBottom="@+id/twitter_button"
+        android:layout_alignEnd="@+id/editText_comment_spot" />
 </RelativeLayout>

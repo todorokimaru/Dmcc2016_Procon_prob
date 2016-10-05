@@ -28,5 +28,6 @@ dependencies {
     compile 'com.android.support:design:24.2.1'
     compile files('libs/twitter4j-core-4.0.4.jar')
     compile files('libs/twitter4j-async-4.0.4.jar')
+    compile files('libs/twitter4j-media-support-4.0.4.jar')
     testCompile 'junit:junit:4.12'
 }

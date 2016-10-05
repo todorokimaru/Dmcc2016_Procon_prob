@@ -8,39 +8,8 @@
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
+    android:background="#fef3b3"
     tools:context="prob.procon.dmcc2016.myapplication.StartActivity">
-
-    <Button
-        android:text="開始"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/button_start"
-        android:elevation="0dp"
-        android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true" />
-
-    <TextView
-        android:text="登山する山岳を選択してください。"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/textView2"
-        android:textAppearance="@android:style/TextAppearance.Material.Medium"
-        android:layout_alignParentTop="true"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="112dp" />
-
-    <EditText
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:inputType="textVisiblePassword"
-        android:digits="0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWZXY"
-        android:ems="10"
-        android:maxLength="10"
-        android:id="@+id/editText"
-        android:hint="ここをタップして入力してください。"
-        android:layout_centerVertical="true"
-        android:layout_alignParentEnd="true"
-        android:layout_alignParentStart="true" />
 
     <Spinner
         android:layout_width="match_parent"
@@ -57,8 +26,44 @@
         android:id="@+id/textView5"
         android:textAppearance="@android:style/TextAppearance.Material.Medium"
         android:gravity="center"
-        android:layout_above="@+id/editText"
+        android:layout_below="@+id/spinner"
         android:layout_centerHorizontal="true"
-        android:layout_marginBottom="30dp" />
+        android:layout_marginTop="57dp" />
+
+    <EditText
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:digits="0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWZXY"
+        android:ems="10"
+        android:maxLength="10"
+        android:id="@+id/editText"
+        android:hint="ここをタップして入力してください。"
+        android:layout_below="@+id/textView5"
+        android:layout_alignStart="@+id/textView5"
+        android:layout_alignEnd="@+id/textView5"
+        android:inputType="textVisiblePassword" />
+
+    <TextView
+        android:text="登山する山岳を選択してください。"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/textView2"
+        android:textAppearance="@android:style/TextAppearance.Material.Medium"
+        android:layout_marginTop="55dp"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true" />
+
+    <Button
+        android:text="開始"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/button_start"
+        android:elevation="0dp"
+        android:background="#ccb428"
+        android:textSize="18sp"
+        android:layout_below="@+id/editText"
+        android:layout_alignEnd="@+id/editText"
+        android:layout_marginTop="91dp" >
+    </Button>
 
 </RelativeLayout>

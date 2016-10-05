@@ -8,6 +8,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.View;
 import android.widget.CheckBox;
 import android.widget.EditText;
@@ -55,8 +56,16 @@ public class Tweet_Activity extends AppCompatActivity {
         findViewById(R.id.tweet_push).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(image_flag && check_flag) tweet(file);
-                else tweet(null);
+                if(image_flag && check_flag) {
+                    Log.d("Twitter", "image add");
+                    tweet(file);
+                }
+                else {
+                    tweet(null);
+                    Log.d("Twitter", "image_flag"+ image_flag);
+                    Log.d("Twitter", "check_flag"+ check_flag);
+                }
+
                 Intent intent = new Intent();
                 setResult(RESULT_OK, intent);
                 finish();
@@ -71,7 +80,8 @@ public class Tweet_Activity extends AppCompatActivity {
                 
                 // チェックボックスのチェック状態を取得します
                 boolean checked = checkBox.isChecked();
-                image_flag = checked;
+                if(checked) check_flag = true;
+                else check_flag = false;
             }
         });
 

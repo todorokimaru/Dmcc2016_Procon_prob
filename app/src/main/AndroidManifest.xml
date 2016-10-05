@@ -58,7 +58,7 @@
         </activity>
         <activity
             android:name=".AddLocation_Info"
-            android:label="AddMarker" />
+            android:label="危険箇所追加" />
         <activity android:name=".AddSpot_Info" />
         <activity
             android:name=".TwitterOAuthActivity"

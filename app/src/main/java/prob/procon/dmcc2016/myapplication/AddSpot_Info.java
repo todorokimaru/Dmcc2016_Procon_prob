@@ -151,19 +151,6 @@ public class AddSpot_Info extends AppCompatActivity {
             }
         });
 
-        twitter_OAuth_button = (Button)findViewById(R.id.twitter_oauth_button);
-        twitter_OAuth_button.setOnClickListener(new View.OnClickListener(){
-
-            @Override
-            public void onClick(View v) {
-                Log.d("Twitter", "OAuth認証");
-
-                Intent intent = new Intent(getApplication(), TwitterOAuthActivity.class);
-
-                startActivity(intent);
-            }
-        });
-
         twitter_tweet_button = (Button)findViewById(R.id.twitter_button);
         twitter_tweet_button.setOnClickListener(new View.OnClickListener(){
 
@@ -178,7 +165,8 @@ public class AddSpot_Info extends AppCompatActivity {
                         intent.putExtra("Image_path", imageFile.getAbsolutePath());
                     startActivity(intent);
                 } else{
-                    showToast("OAuth認証がされていません！");
+                    Intent intent = new Intent(getApplication(), TwitterOAuthActivity.class);
+                    startActivity(intent);
                 }
             }
         });
