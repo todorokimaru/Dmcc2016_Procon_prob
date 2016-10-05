@@ -17,12 +17,17 @@ public class StartActivity extends AppCompatActivity {
     private String[] mStr_Mount = {"呉羽山","大汝山"};
 
     private Spinner nSpinner;
+    private TCP_Client_Thread tcp_client_thread;
+    private String IP = "153.126.176.44";
+    private int Port = 4000;
 
     private String select_mount_name;
     private String select_mount_func;
     private int  select_mount_x;
     private int  select_mount_y;
     private int zoom;
+    private String User_id = "Dummy_User";
+    private String mount_str;
 
     private static MakerHelper mDBHelper;
 
@@ -33,6 +38,7 @@ public class StartActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_start);
 
+        tcp_client_thread = new TCP_Client_Thread();
         nSpinner = (Spinner)findViewById(R.id.spinner);
 
         mDBHelper = MakerHelper.getInstance(getApplicationContext());
@@ -69,6 +75,12 @@ public class StartActivity extends AppCompatActivity {
                 starting_app(v);
             }
         });
+        findViewById(R.id.button_DL).setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View v){
+                mapData_DL();
+            }
+        });
     }
 
     private void starting_app(View v){
@@ -89,4 +101,15 @@ public class StartActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
+    private void mapData_DL(){
+        if(tcp_client_thread.connectTh(IP, Port)){
+            if(select_mount_func.equals("AA")) mount_str = "Kureha";
+            else if(select_mount_func.equals("BB")) mount_str = "Onanji";
+            Log.d("TCP", "Connection");
+            byte[] send = (mount_str+","+User_id+",0").getBytes();
+            tcp_client_thread.sendTh(send);
+            byte[] data;
+            data = tcp_client_thread.recvTh(50000);
+        }
+    }
 }

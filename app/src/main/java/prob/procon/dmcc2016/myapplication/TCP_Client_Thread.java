@@ -34,7 +34,7 @@ public class TCP_Client_Thread {
         try{
             //ソケット接続
             socket = new Socket(ip, port);
-
+            Log.v("connect", "socket genaleted");
             if(socket.isConnected() && socket != null){
                 in = socket.getInputStream();
                 out = socket.getOutputStream();
