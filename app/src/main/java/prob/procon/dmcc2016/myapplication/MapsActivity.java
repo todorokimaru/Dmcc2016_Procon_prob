@@ -199,6 +199,7 @@ public class MapsActivity extends AppCompatActivity
 
         mDBHelper = MakerHelper.getInstance(getApplicationContext());
         writableDB = mDBHelper.getWritableDatabase();
+        writableDB.delete(DatabaseManager.TABLE_NAME, "id = *", null);
         tcp_client = new TCP_Client_Thread();
 
         Intent intent = getIntent();
