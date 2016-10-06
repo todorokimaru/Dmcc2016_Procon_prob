@@ -75,6 +75,8 @@
             </intent-filter>
         </activity>
         <activity android:name=".Tweet_Activity"></activity>
+
+        <receiver android:name=".MapsActivity" />
     </application>
 
 </manifest>

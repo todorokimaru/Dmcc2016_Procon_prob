@@ -16,6 +16,7 @@ import com.google.android.gms.maps.model.UrlTileProvider;
 
 import android.Manifest;
 import android.app.Dialog;
+import android.content.BroadcastReceiver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
@@ -67,6 +68,7 @@ public class MapsActivity extends AppCompatActivity
         GoogleMap.OnMarkerClickListener,
         GoogleMap.OnInfoWindowClickListener,
         GoogleMap.OnInfoWindowCloseListener {
+
     /** Demonstrates customizing the info window and/or its contents. */
     class CustomInfoWindowAdapter implements GoogleMap.InfoWindowAdapter {
         // These are both viewgroups containing an ImageView with id "badge" and two TextViews with id
@@ -199,7 +201,7 @@ public class MapsActivity extends AppCompatActivity
 
         mDBHelper = MakerHelper.getInstance(getApplicationContext());
         writableDB = mDBHelper.getWritableDatabase();
-        writableDB.delete(DatabaseManager.TABLE_NAME, "id = *", null);
+        writableDB.delete(DatabaseManager.TABLE_NAME, null , null);
         tcp_client = new TCP_Client_Thread();
 
         Intent intent = getIntent();
@@ -254,7 +256,7 @@ public class MapsActivity extends AppCompatActivity
         mMap.setOnInfoWindowClickListener(this);
         mMap.setOnInfoWindowCloseListener(this);
 
-        if(TCP_Client_Thread.netWorkCheck(this.getApplicationContext()) || switch_networkInfo) {
+        if(TCP_Client_Thread.netWorkCheck(this.getApplicationContext())) {
             Log.d("dsadsa","test");
             TileProvider tileProvider = new UrlTileProvider(256, 256) {
                 @Override
@@ -278,11 +280,9 @@ public class MapsActivity extends AppCompatActivity
             jMaps = map.addTileOverlay(new TileOverlayOptions().tileProvider(tileProvider));
             map.addTileOverlay(new TileOverlayOptions().tileProvider(tileProvider));
         }
-        else{
-            jMaps = map.addTileOverlay(new TileOverlayOptions().tileProvider(new CustomMapTileProvider(getResources().getAssets())));
-            map.addTileOverlay(new TileOverlayOptions().tileProvider(new CustomMapTileProvider(getResources().getAssets())));
-        }
 
+        jMaps = map.addTileOverlay(new TileOverlayOptions().tileProvider(new CustomMapTileProvider(getResources().getAssets(), mount_name_db)));
+        map.addTileOverlay(new TileOverlayOptions().tileProvider(new CustomMapTileProvider(getResources().getAssets(), mount_name_db)));
 
 
         mMap.setOnMyLocationButtonClickListener(this);
