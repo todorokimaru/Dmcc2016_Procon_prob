@@ -47,6 +47,7 @@ public class AddLocation_Info extends AppCompatActivity {
     private ImageView imgView;
     private File imageFile;
     private String imageName;
+    private boolean image_flag = false;
 
     private Date info_date;
     Button add_button;
@@ -62,6 +63,7 @@ public class AddLocation_Info extends AppCompatActivity {
         imgView = (ImageView)findViewById(R.id.imageView_location) ;
         SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd-kkmmss");
         date_str = sdf.format(info_date);
+        imageName = user_id+sdf.format(info_date)+".png";
 
 
         InfoSpinner = (Spinner)findViewById(R.id.info_type_spinner);
@@ -149,8 +151,9 @@ public class AddLocation_Info extends AppCompatActivity {
                 intent.putExtra("Longitude", select_longitude);
                 intent.putExtra("Higher", select_higher);
                 intent.putExtra("Comment", sp.toString());
-                if(imageFile.exists())
+                if(image_flag)
                     intent.putExtra("Image", imageFile.getAbsolutePath());
+                intent.putExtra("Img_flag", image_flag);
                 intent.putExtra("Date", date_str);
                 setResult(RESULT_OK, intent);
                 finish();
@@ -189,6 +192,7 @@ public class AddLocation_Info extends AppCompatActivity {
                 try{
                     out = new FileOutputStream(imageFile);
                     bmp.compress(Bitmap.CompressFormat.PNG, 0 , out);
+                    image_flag = true;
                 }catch (FileNotFoundException e){
                     e.printStackTrace();
                 }

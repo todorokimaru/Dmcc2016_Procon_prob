@@ -329,6 +329,7 @@ public class MapsActivity extends AppCompatActivity
                     intent1.putExtra("Latitude_User", mylocate.getLatitude());
                     intent1.putExtra("Longitude_User", mylocate.getLongitude());
                     intent1.putExtra("Higher_User", mylocate.getAltitude());
+                    intent1.putExtra("User_id", user_id);
                     int requestCode = RESULT_SUBACTIVITY;
                     startActivityForResult(intent1, requestCode);
                 }
@@ -496,8 +497,9 @@ public class MapsActivity extends AppCompatActivity
             double longitude = intent.getDoubleExtra("Longitude",0.0);
             double higher = intent.getDoubleExtra("Higher", 0.0);
             String comment = intent.getStringExtra("Comment");
+            boolean img_flag = intent.getBooleanExtra("Img_flag", false);
             String bmp_path = "";
-            if(!intent.getStringExtra("Image").isEmpty())
+            if(img_flag)
                 bmp_path = intent.getStringExtra("Image");
             String date = intent.getStringExtra("Date");
             String location_str = latitude + "-"+longitude+"-"+higher;
