@@ -20,9 +20,11 @@ public class CustomMapTileProvider implements TileProvider {
     private static final int BUFFER_SIZE = 16 * 1024;
 
     private AssetManager mAssets;
+    private String mMount_name;
 
-    public CustomMapTileProvider(AssetManager assets) {
+    public CustomMapTileProvider(AssetManager assets, String mount_name) {
         mAssets = assets;
+        mMount_name = mount_name;
     }
 
     @Override
@@ -61,6 +63,6 @@ public class CustomMapTileProvider implements TileProvider {
     }
 
     private String getTileFilename(int x, int y, int zoom) {
-        return "Kureha-" + zoom + '-' + x + '-' + y + ".png";
+        return mMount_name+"-" + zoom + '-' + x + '-' + y + ".png";
     }
 }

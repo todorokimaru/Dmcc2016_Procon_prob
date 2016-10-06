@@ -55,11 +55,11 @@ public class StartActivity extends AppCompatActivity {
                 String item = (String)spinner.getSelectedItem();
                 if(item.equals("呉羽山")){
                     select_mount_name = item;
-                    select_mount_func = "AA";
+                    select_mount_func = "Kureha";
                 }
                 else if(item.equals("大汝山")){
                     select_mount_name = item;
-                    select_mount_func = "BB";
+                    select_mount_func = "Onanji";
                 }
             }
 
@@ -103,10 +103,8 @@ public class StartActivity extends AppCompatActivity {
 
     private void mapData_DL(){
         if(tcp_client_thread.connectTh(IP, Port)){
-            if(select_mount_func.equals("AA")) mount_str = "Kureha";
-            else if(select_mount_func.equals("BB")) mount_str = "Onanji";
             Log.d("TCP", "Connection");
-            byte[] send = (mount_str+","+User_id+",0").getBytes();
+            byte[] send = (select_mount_func+","+User_id+",0").getBytes();
             tcp_client_thread.sendTh(send);
             byte[] data;
             data = tcp_client_thread.recvTh(50000);

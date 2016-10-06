@@ -35,19 +35,6 @@
         android:layout_alignEnd="@+id/textView5"
         android:inputType="textVisiblePassword" />
 
-    <Button
-        android:text="開始"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/button_start"
-        android:elevation="0dp"
-        android:background="#ccb428"
-        android:textSize="18sp"
-        android:layout_below="@+id/editText"
-        android:layout_alignEnd="@+id/editText"
-        android:layout_marginTop="91dp" >
-    </Button>
-
     <TextView
         android:text="登山する山岳を選択してください。"
         android:layout_width="wrap_content"
@@ -76,5 +63,18 @@
         android:id="@+id/button_DL"
         android:layout_toEndOf="@+id/textView2"
         android:layout_alignStart="@+id/button_start" />
+
+    <Button
+        android:text="開始"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/button_start"
+        android:elevation="0dp"
+        android:background="#ccb428"
+        android:textSize="18sp"
+        android:layout_marginTop="44dp"
+        android:layout_below="@+id/editText"
+        android:layout_alignEnd="@+id/editText">
+    </Button>
 
 </RelativeLayout>
