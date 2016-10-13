@@ -31,6 +31,7 @@ public class Tweet_Activity extends AppCompatActivity {
     private boolean image_flag;
     private boolean check_flag = false;
     private CheckBox checkBox;
+    private String comment;
     private File file;
 
     @Override
@@ -45,13 +46,14 @@ public class Tweet_Activity extends AppCompatActivity {
             image_path = intent.getStringExtra("Image_path");
             file = new File(image_path);
         }
+        comment = intent.getStringExtra("Comment");
 
         checkBox = (CheckBox)findViewById(R.id.image_add_check);
         mTwitter = Twitter_Util.getTwitterInstance(this);
         mInputText = (EditText) findViewById(R.id.tweet_text);
         mTextLength = (TextView)findViewById(R.id.text_length);
 
-        mInputText.setText(" ヤッホー！"+mount_name+"からの投稿です！");
+        mInputText.setText(comment + " -ヤッホー！"+mount_name+"からの投稿です！");
 
         findViewById(R.id.tweet_push).setOnClickListener(new View.OnClickListener() {
             @Override

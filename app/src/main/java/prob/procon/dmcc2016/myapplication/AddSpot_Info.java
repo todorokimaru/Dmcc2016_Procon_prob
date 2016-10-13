@@ -157,12 +157,16 @@ public class AddSpot_Info extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Log.d("Twitter", "Call Tweet Activity");
+                EditText edit = (EditText)findViewById(R.id.editText_comment_spot);
+                SpannableStringBuilder sp = (SpannableStringBuilder)edit.getText();
+
                 if(Twitter_Util.hasAccessToken(getApplicationContext())) {
                     Intent intent = new Intent(getApplication(), Tweet_Activity.class);
                     intent.putExtra("Mount_name" , mount_name);
                     intent.putExtra("Image_flag" , image_flag);
                     if(image_flag)
                         intent.putExtra("Image_path", imageFile.getAbsolutePath());
+                    intent.putExtra("Comment", sp.toString());
                     startActivity(intent);
                 } else{
                     Intent intent = new Intent(getApplication(), TwitterOAuthActivity.class);

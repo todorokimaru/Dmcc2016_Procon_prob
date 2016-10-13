@@ -6,6 +6,7 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.UiSettings;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.Tile;
@@ -16,7 +17,6 @@ import com.google.android.gms.maps.model.UrlTileProvider;
 
 import android.Manifest;
 import android.app.Dialog;
-import android.content.BroadcastReceiver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
@@ -256,6 +256,11 @@ public class MapsActivity extends AppCompatActivity
         mMap.setOnInfoWindowClickListener(this);
         mMap.setOnInfoWindowCloseListener(this);
 
+        UiSettings us = mMap.getUiSettings();
+        us.setMapToolbarEnabled(false);
+        us.setZoomControlsEnabled(true);
+        us.setCompassEnabled(true);
+
         if(TCP_Client_Thread.netWorkCheck(this.getApplicationContext())) {
             Log.d("dsadsa","test");
             TileProvider tileProvider = new UrlTileProvider(256, 256) {
@@ -304,7 +309,7 @@ public class MapsActivity extends AppCompatActivity
             return;
         }
 
-        final Location mylocate = locationManager.getLastKnownLocation("gps");
+        final Location mylocate = new Location("gps");
 
         mMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
             @Override

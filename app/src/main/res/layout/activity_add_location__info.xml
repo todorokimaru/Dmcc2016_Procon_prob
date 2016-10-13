@@ -20,26 +20,6 @@
         android:layout_alignEnd="@+id/textView3"
         android:layout_alignStart="@+id/textView3" />
 
-    <EditText
-        android:layout_width="300dp"
-        android:layout_height="100dp"
-        android:inputType="textMultiLine"
-        android:ems="10"
-        android:id="@+id/editText_comment"
-        android:hint="ここをタップして入力してください。"
-        android:layout_below="@+id/textView4"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:layout_toStartOf="@+id/imageView_location" />
-
-    <ImageView
-        app:srcCompat="@color/cast_expanded_controller_background_color"
-        android:id="@+id/imageView_location"
-        android:layout_width="150dp"
-        android:layout_height="200dp"
-        android:layout_above="@+id/editText_comment"
-        android:layout_alignParentEnd="true" />
-
     <TextView
         android:text="下記のリストから危険の種類を選択してください。*"
         android:layout_width="wrap_content"
@@ -70,6 +50,39 @@
         android:layout_below="@+id/imageView_location"
         android:layout_toEndOf="@+id/textView" />
 
+    <TextView
+        android:text="位置情報の選択を行ってください。*"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/textView3"
+        android:layout_marginTop="33dp"
+        android:textSize="18sp"
+        android:layout_marginStart="54dp"
+        android:layout_below="@+id/info_type_spinner"
+        android:layout_alignParentStart="true" />
+
+    <EditText
+        android:layout_width="300dp"
+        android:layout_height="100dp"
+        android:inputType="textMultiLine"
+        android:ems="10"
+        android:id="@+id/editText_comment"
+        android:hint="ここをタップして入力してください。"
+        android:layout_below="@+id/textView4"
+        android:layout_alignParentStart="true"
+        android:layout_toStartOf="@+id/imageView_location" />
+
+    <TextView
+        android:text="コメントを入力してください。"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/textView4"
+        android:layout_marginTop="44dp"
+        android:textSize="18sp"
+        android:layout_below="@+id/location_spinner"
+        android:layout_alignEnd="@+id/location_spinner"
+        android:layout_marginEnd="19dp" />
+
     <Button
         android:text="危険個所を追加"
         android:layout_width="wrap_content"
@@ -78,27 +91,16 @@
         android:background="#ccb428"
         android:layout_below="@+id/editText_comment"
         android:layout_alignParentStart="true"
+        android:layout_marginTop="52dp"
         android:layout_alignParentEnd="true" />
 
-    <TextView
-        android:text="位置情報の選択を行ってください。*"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/textView3"
-        android:layout_marginTop="58dp"
-        android:textSize="18sp"
-        android:layout_marginStart="52dp"
+    <ImageView
+        app:srcCompat="@color/cast_expanded_controller_background_color"
+        android:id="@+id/imageView_location"
+        android:layout_width="150dp"
+        android:layout_height="200dp"
         android:layout_below="@+id/info_type_spinner"
-        android:layout_alignParentStart="true" />
-
-    <TextView
-        android:text="コメントを入力してください。"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/textView4"
-        android:layout_marginTop="53dp"
-        android:layout_marginStart="28dp"
-        android:layout_below="@+id/location_spinner"
-        android:layout_alignStart="@+id/location_spinner" />
+        android:layout_alignParentEnd="true"
+        android:layout_marginTop="17dp" />
 
 </RelativeLayout>
