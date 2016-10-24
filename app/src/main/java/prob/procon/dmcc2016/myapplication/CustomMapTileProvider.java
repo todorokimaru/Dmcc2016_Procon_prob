@@ -63,6 +63,6 @@ public class CustomMapTileProvider implements TileProvider {
     }
 
     private String getTileFilename(int x, int y, int zoom) {
-        return mMount_name+"-" + zoom + '-' + x + '-' + y + ".png";
+        return mMount_name+"/"+mMount_name+"-" + zoom + '-' + x + '-' + y + ".png";
     }
 }
