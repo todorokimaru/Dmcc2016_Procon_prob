@@ -6,6 +6,7 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.UiSettings;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.Tile;
@@ -16,7 +17,6 @@ import com.google.android.gms.maps.model.UrlTileProvider;
 
 import android.Manifest;
 import android.app.Dialog;
-import android.content.BroadcastReceiver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
@@ -256,6 +256,11 @@ public class MapsActivity extends AppCompatActivity
         mMap.setOnInfoWindowClickListener(this);
         mMap.setOnInfoWindowCloseListener(this);
 
+        UiSettings us = mMap.getUiSettings();
+        us.setMapToolbarEnabled(false);
+        us.setZoomControlsEnabled(true);
+        us.setCompassEnabled(true);
+
         if(TCP_Client_Thread.netWorkCheck(this.getApplicationContext())) {
             Log.d("dsadsa","test");
             TileProvider tileProvider = new UrlTileProvider(256, 256) {
@@ -304,7 +309,7 @@ public class MapsActivity extends AppCompatActivity
             return;
         }
 
-        final Location mylocate = locationManager.getLastKnownLocation("gps");
+        final Location mylocate = new Location("gps");
 
         mMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
             @Override
@@ -329,6 +334,7 @@ public class MapsActivity extends AppCompatActivity
                     intent1.putExtra("Latitude_User", mylocate.getLatitude());
                     intent1.putExtra("Longitude_User", mylocate.getLongitude());
                     intent1.putExtra("Higher_User", mylocate.getAltitude());
+                    intent1.putExtra("User_id", user_id);
                     int requestCode = RESULT_SUBACTIVITY;
                     startActivityForResult(intent1, requestCode);
                 }
@@ -496,8 +502,9 @@ public class MapsActivity extends AppCompatActivity
             double longitude = intent.getDoubleExtra("Longitude",0.0);
             double higher = intent.getDoubleExtra("Higher", 0.0);
             String comment = intent.getStringExtra("Comment");
+            boolean img_flag = intent.getBooleanExtra("Img_flag", false);
             String bmp_path = "";
-            if(!intent.getStringExtra("Image").isEmpty())
+            if(img_flag)
                 bmp_path = intent.getStringExtra("Image");
             String date = intent.getStringExtra("Date");
             String location_str = latitude + "-"+longitude+"-"+higher;

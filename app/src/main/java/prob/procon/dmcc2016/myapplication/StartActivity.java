@@ -18,6 +18,7 @@ public class StartActivity extends AppCompatActivity {
 
     private Spinner nSpinner;
     private TCP_Client_Thread tcp_client_thread;
+    private GetUrlPicture getUrlPicture;
     private String IP = "153.126.176.44";
     private int Port = 4000;
 
@@ -39,6 +40,7 @@ public class StartActivity extends AppCompatActivity {
         setContentView(R.layout.activity_start);
 
         tcp_client_thread = new TCP_Client_Thread();
+        getUrlPicture = new GetUrlPicture();
         nSpinner = (Spinner)findViewById(R.id.spinner);
 
         mDBHelper = MakerHelper.getInstance(getApplicationContext());
@@ -107,7 +109,9 @@ public class StartActivity extends AppCompatActivity {
             byte[] send = (select_mount_func+","+User_id+",0").getBytes();
             tcp_client_thread.sendTh(send);
             byte[] data;
-            data = tcp_client_thread.recvTh(50000);
+            data = tcp_client_thread.recvTh(2000);
+            String request_url = data.toString();
+            getUrlPicture.saveFile(request_url, 10, 902, 399, select_mount_func, getApplicationContext());
         }
     }
 }
