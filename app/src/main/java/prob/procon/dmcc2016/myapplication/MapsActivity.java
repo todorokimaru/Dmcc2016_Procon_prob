@@ -171,6 +171,7 @@ public class MapsActivity extends AppCompatActivity
     private final List<Marker> mMarker_AddUser = new ArrayList<Marker>();
     private final List<Marker> mMarker_List = new ArrayList<Marker>();
     private final List<MarkerInfo> Comment_List = new ArrayList<MarkerInfo>();
+    private final List<Ground_Info> Elevation_List = new ArrayList<Ground_Info>();
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
     private boolean mPermissionDenied = false;
     private GoogleMap mMap;
