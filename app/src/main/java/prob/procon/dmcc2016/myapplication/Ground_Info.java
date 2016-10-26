@@ -5,6 +5,7 @@ package prob.procon.dmcc2016.myapplication;
  */
 
 public class Ground_Info {
+    private double elevation;
     private double altitude_difference;
     private double inclination;
     private double slope;
@@ -13,8 +14,9 @@ public class Ground_Info {
     private double latitude;
     private double longitude;
 
-    public Ground_Info(double altitude_difference, double slope, double finally_alt_diff,
+    public Ground_Info(double elevation,double altitude_difference, double slope, double finally_alt_diff,
                        double distance , double inclination, double latitude, double longitude){
+        this.elevation = elevation;
         this.altitude_difference = altitude_difference;
         this.slope = slope;
         this.finally_alt_diff = finally_alt_diff;
@@ -24,6 +26,7 @@ public class Ground_Info {
         this.longitude = longitude;
     }
 
+    public double returnElevation(){ return elevation; }
     public double returnAltirude_difference(){
         return altitude_difference;
     }
