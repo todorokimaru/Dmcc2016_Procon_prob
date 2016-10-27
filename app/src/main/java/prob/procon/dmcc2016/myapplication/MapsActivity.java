@@ -100,26 +100,6 @@ public class MapsActivity extends AppCompatActivity
             String info_Str = "";
 
             String title = marker.getTitle();
-            if(title.equals("標高テスト")){
-                TextView titleUi = ((TextView) view.findViewById(R.id.Info_type));
-                if (title != null) {
-                    // Spannable string allows us to edit the formatting of the text.
-                    SpannableString titleText = new SpannableString(info_Str);
-                        titleText.setSpan(new ForegroundColorSpan(Color.RED), 0, titleText.length(), 0);
-                    titleUi.setText(titleText);
-                } else {
-                    titleUi.setText("No Info");
-                }
-                TextView user_idUI = ((TextView) view.findViewById(R.id.User_id));
-                if (user_idUI != null) {
-                    //SpannableString snippetText = new SpannableString(Comment_List.get(window_num).returnUser_id());
-                    //snippetText.setSpan(new ForegroundColorSpan(Color.BLACK), 0, user_idUI.length(), 0);
-                    user_idUI.setText("標高:"+Elevation_List.get(0).toString());
-                    user_idUI.setTextColor(Color.BLACK);
-                } else {
-                    user_idUI.setText("No Info");
-                }
-            }
             for(int i = 0; i < Comment_List.size(); i++){
                 if((Comment_List.get(i).returnUser_id()+Comment_List.get(i).returnDate()).equals(title)) {
                     flag_window = true;
@@ -193,7 +173,6 @@ public class MapsActivity extends AppCompatActivity
     private final List<Marker> mMarker_AddUser = new ArrayList<Marker>();
     private final List<Marker> mMarker_List = new ArrayList<Marker>();
     private final List<MarkerInfo> Comment_List = new ArrayList<MarkerInfo>();
-    private final List<Ground_Info> Elevation_List = new ArrayList<Ground_Info>();
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
     private boolean mPermissionDenied = false;
     private GoogleMap mMap;
@@ -216,7 +195,6 @@ public class MapsActivity extends AppCompatActivity
     private ToggleButton switch_network;
     private boolean switch_markerInfo;
     private boolean switch_networkInfo;
-    private Ground_Info_Calc gic;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -246,7 +224,6 @@ public class MapsActivity extends AppCompatActivity
         switch_network.setOnCheckedChangeListener(this);
         switch_markerInfo = false;
         switch_networkInfo = true;
-        gic = new Ground_Info_Calc(mount_name_db);
 
         SupportMapFragment mapFragment =
                 (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
@@ -314,11 +291,9 @@ public class MapsActivity extends AppCompatActivity
         jMaps = map.addTileOverlay(new TileOverlayOptions().tileProvider(new CustomMapTileProvider(getResources().getAssets(), mount_name_db)));
         map.addTileOverlay(new TileOverlayOptions().tileProvider(new CustomMapTileProvider(getResources().getAssets(), mount_name_db)));
 
-
         mMap.setOnMyLocationButtonClickListener(this);
         enableMyLocation();
         moveToStartLocotion();
-        addMarkersToMap();
 
         mMap.setMaxZoomPreference(15);
         mMap.setMinZoomPreference(10);
@@ -390,19 +365,6 @@ public class MapsActivity extends AppCompatActivity
             add_marker.add_Marker_maps(location, info_type, mMap, Comment_List, mMarker_List, date, user_db, comment);
         }
     }
-
-    private void addMarkersToMap() {
-            Marker marker = mMap.addMarker(new MarkerOptions()
-                    .position(new LatLng(
-                            36.573302,137.607214))
-                    .title("標高テスト")
-                    .icon(BitmapDescriptorFactory.defaultMarker())
-                    .flat(true)
-                    .rotation(0));
-            Elevation_List.add(new Ground_Info(gic.elevation_num(new LatLng(36.573302,137.607214)), 0.0,
-                    0.0, 0.0, 0.0, 0.0, 0.0, 0.0));
-    }
-
 
     @Override
     public boolean onMyLocationButtonClick() {
